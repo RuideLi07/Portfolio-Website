@@ -4,7 +4,7 @@ import { useState, useRef, useMemo } from "react";
 import { PROJECTS, ContentBlock } from "@/data/projects";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"landing" | "design" | "research" | "about">("landing");
+  const [activeTab, setActiveTab] = useState<"landing" | "design" | "research" | "info">("landing");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [theme, setTheme] = useState<"dark" | "bright">("dark");
   const [isScrolled, setIsScrolled] = useState(false);
@@ -89,7 +89,7 @@ export default function Home() {
     }
   };
 
-  const handleTabChange = (tab: "landing" | "design" | "research" | "about") => {
+  const handleTabChange = (tab: "landing" | "design" | "research" | "info") => {
     setActiveTab(tab);
     setIsScrolled(false);
     sectionRefs.current = {};
@@ -190,9 +190,9 @@ export default function Home() {
                 Research
               </button>
               <button
-                onClick={() => handleTabChange("about")}
+                onClick={() => handleTabChange("info")}
                 className={`transition-colors ${
-                  activeTab === "about"
+                  activeTab === "info"
                     ? isDark
                       ? "text-white font-semibold"
                       : "text-black font-semibold"
@@ -201,7 +201,7 @@ export default function Home() {
                     : "text-neutral-400 hover:text-black"
                 }`}
               >
-                About
+                Info
               </button>
             </>
           )}
@@ -248,9 +248,8 @@ export default function Home() {
         )}
 
         {/* ABOUT TAB */}
-        {activeTab === "about" && (
+        {activeTab === "info" && (
           <main className="px-8 md:px-12 max-w-2xl flex flex-col gap-4">
-            <h2 className="text-2xl font-light">About Me</h2>
             <p className={`leading-relaxed text-base ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
               I work at the intersection of civic technology, experience design, and spatial research. 
               My work focuses on translating complex socio-technical systems into intuitive digital products and interventions.
