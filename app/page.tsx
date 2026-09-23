@@ -19,6 +19,11 @@ export default function Home() {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
+  // Which category tab is selected for each "table" block that uses the
+  // category/items/agencies row format. Keyed by block index since a project
+  // could have more than one such table.
+  const [selectedCategoryByBlock, setSelectedCategoryByBlock] = useState<Record<number, number>>({});
+
   const designProjects = PROJECTS.filter((p) => p.type === "design");
   const researchProjects = PROJECTS.filter((p) => p.type === "research");
 
@@ -94,14 +99,8 @@ export default function Home() {
     setIsScrolled(false);
     sectionRefs.current = {};
     setActiveSectionId(null);
-
-    if (tab === "design" && designProjects.length > 0) {
-      setActiveId(designProjects[0].id);
-    } else if (tab === "research" && researchProjects.length > 0) {
-      setActiveId(researchProjects[0].id);
-    } else {
-      setActiveId(null);
-    }
+    // Land on the thumbnail gallery rather than jumping into the first project.
+    setActiveId(null);
   };
 
   const handleSelectProject = (id: string) => {
@@ -110,6 +109,44 @@ export default function Home() {
     setActiveId(id);
     setIsScrolled(false);
     scrollToTop();
+  };
+
+  // Return to the thumbnail grid for the current tab
+  const backToGallery = () => {
+    sectionRefs.current = {};
+    setActiveSectionId(null);
+    setActiveId(null);
+    setIsScrolled(false);
+  };
+
+  // Jump the middle column's scroll position to a given section, offset by
+  // the same activation line used in handleScroll so the highlight stays in sync.
+  const scrollToSection = (sectionId: string) => {
+    const container = mainRef.current;
+    const target = sectionRefs.current[sectionId];
+    if (!container || !target) return;
+
+    const activationLine = 160;
+    const top = target.offsetTop - activationLine;
+
+    container.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    setActiveSectionId(sectionId);
+  };
+
+  // Pick a cover image for a gallery card: explicit `thumbnail` (with optional
+  // light-mode variant) if set, otherwise fall back to the first image block.
+  const getThumbnail = (project: (typeof PROJECTS)[number]) => {
+    if (project.thumbnail) {
+      return !isDark && project.thumbnailLight ? project.thumbnailLight : project.thumbnail;
+    }
+
+    const firstImage = project.blocks?.find(
+      (b) => b.type === "image" || b.type === "image-row"
+    );
+    if (!firstImage) return null;
+    if (firstImage.type === "image") return firstImage.src;
+    if (firstImage.type === "image-row") return firstImage.images[0]?.src ?? null;
+    return null;
   };
 
   const toggleTheme = () => {
@@ -247,7 +284,7 @@ export default function Home() {
           </main>
         )}
 
-        {/* ABOUT TAB */}
+        {/* INFO TAB */}
         {activeTab === "info" && (
           <main className="px-8 md:px-12 max-w-2xl flex flex-col gap-4">
             <p className={`leading-relaxed text-base ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
@@ -261,13 +298,88 @@ export default function Home() {
           </main>
         )}
 
+        {/* WORK TABS — GALLERY INDEX (no project selected yet) */}
+        {(activeTab === "design" || activeTab === "research") && !activeProject && (
+          <main className="overflow-y-auto h-full no-scrollbar">
+            {(activeTab === "design" ? designProjects : researchProjects).map((project) => {
+              const thumb = getThumbnail(project);
+
+              return (
+                <button
+                  key={project.id}
+                  onClick={() => handleSelectProject(project.id)}
+                  className="group relative block w-full h-full min-h-[420px] overflow-hidden text-left focus:outline-none flex-shrink-0"
+                >
+                  {/* Full-bleed image */}
+                  {thumb ? (
+                    <img
+                      src={thumb}
+                      alt={project.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className={`absolute inset-0 ${isDark ? "bg-neutral-800" : "bg-neutral-100"}`} />
+                  )}
+
+                  {/* Gradient for text legibility */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-t ${
+                      isDark
+                        ? "from-black/90 via-black/20 to-transparent"
+                        : "from-white/90 via-white/10 to-transparent"
+                    }`}
+                  />
+
+                  {/* Overlaid content */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-14 gap-3 max-w-3xl">
+                    <h3
+                      className={`text-3xl md:text-5xl font-semibold tracking-tight transition-colors ${
+                        isDark ? "text-white" : "text-neutral-900"
+                      }`}
+                    >
+                      {project.title}
+                    </h3>
+
+                    {project.description && (
+                      <p
+                        className={`text-sm md:text-base leading-relaxed max-w-xl ${
+                          isDark ? "text-neutral-200" : "text-neutral-700"
+                        }`}
+                      >
+                        {project.description}
+                      </p>
+                    )}
+
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {project.tags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className={`text-[11px] px-2.5 py-0.5 rounded-full border backdrop-blur-sm transition-colors ${
+                              isDark
+                                ? "border-white/30 text-neutral-100 bg-black/20"
+                                : "border-neutral-400 text-neutral-800 bg-white/40"
+                            }`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </main>
+        )}
+
         {/* WORK TABS: Static Sidebars & Scrollable Showcase */}
-        {(activeTab === "design" || activeTab === "research") && (
+        {(activeTab === "design" || activeTab === "research") && activeProject && (
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr_320px] h-full overflow-hidden">
             {/* Left Sidebar Index */}
             <aside className="flex flex-col justify-between p-6 md:p-8 flex-shrink-0 select-none">
               <div className="flex flex-col gap-4">
-                {isScrolled && sections ? (
+                {sections ? (
                   /* --- SCROLL-TRACKED SECTION TIMELINE RAIL --- */
                   <div className="flex flex-col animate-in fade-in duration-300">
                     {sections.map((section, i) => {
@@ -277,9 +389,13 @@ export default function Home() {
 
                       return (
                         <div key={section.id} className="flex flex-col items-start">
-                          <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => scrollToSection(section.id)}
+                            className="flex items-start gap-3 text-left focus:outline-none group/rail"
+                          >
                             <span
-                              className={`mt-[3px] w-2.5 h-2.5 rounded-full border transition-colors duration-300 flex-shrink-0 ${
+                              className={`mt-[3px] w-2.5 h-2.5 rounded-full border transition-colors duration-300 flex-shrink-0 group-hover/rail:border-neutral-300 ${
                                 isActive || isPast
                                   ? isDark
                                     ? "bg-white border-white"
@@ -296,13 +412,13 @@ export default function Home() {
                                     ? "text-white font-medium"
                                     : "text-black font-medium"
                                   : isDark
-                                  ? "text-neutral-500"
-                                  : "text-neutral-400"
+                                  ? "text-neutral-500 group-hover/rail:text-neutral-300"
+                                  : "text-neutral-400 group-hover/rail:text-neutral-600"
                               }`}
                             >
                               {section.title}
                             </span>
-                          </div>
+                          </button>
                           {i < sections.length - 1 && (
                             <div
                               className={`w-[1px] h-8 ml-[4.5px] transition-colors duration-500 ${
@@ -323,6 +439,18 @@ export default function Home() {
                 ) : (
                   /* --- DEFAULT PROJECT LIST --- */
                   <>
+                    {/* Back to thumbnail grid */}
+                    <button
+                      onClick={backToGallery}
+                      className={`flex items-center gap-1.5 text-xs mb-1 transition-colors ${
+                        isDark
+                          ? "text-neutral-500 hover:text-white"
+                          : "text-neutral-400 hover:text-black"
+                      }`}
+                    >
+                      <span>←</span> All {activeTab === "design" ? "Design" : "Research"}
+                    </button>
+
                     {activeTab === "design" && (
                       <div>
                         <h2 className={`text-xs uppercase tracking-wider font-semibold mb-2 ${isDark ? "text-neutral-400" : "text-neutral-400"}`}>
@@ -495,7 +623,7 @@ export default function Home() {
                                 <img
                                   src={imageSrc}
                                   alt={block.alt || activeProject.title}
-                                  className="w-full h-auto object-cover transition-transform duration-200 group-hover:scale-[1.01]"
+                                  className="w-full h-auto object-cover"
                                 />
                               </div>
 
@@ -547,7 +675,7 @@ export default function Home() {
                                         <img
                                           src={imgSrc}
                                           alt={img.alt || `Row image ${i + 1}`}
-                                          className={`w-full h-auto object-contain rounded-lg transition-transform duration-200 group-hover:scale-[1.02] ${
+                                          className={`w-full h-auto object-contain rounded-lg ${
                                             img?.transparent ? "bg-transparent" : ""
                                           }`}
                                         />
@@ -571,6 +699,144 @@ export default function Home() {
                         }
 
                         if (block.type === "table") {
+                          const rows = block.rows as any[];
+                          const isCategoryTable =
+                            rows.length > 0 && !Array.isArray(rows[0]);
+
+                          if (isCategoryTable) {
+                            const selectedIdx = selectedCategoryByBlock[index] ?? 0;
+                            const selectedRow = rows[selectedIdx];
+
+                            return (
+                              <div key={index} className="w-full my-6">
+                                {/* Horizontal category icon tabs */}
+                                <div className="flex items-start justify-center gap-8 md:gap-12 pb-8 flex-wrap">
+                                  {rows.map((row, rIdx) => {
+                                    const isSelected = rIdx === selectedIdx;
+                                    return (
+                                      <button
+                                        key={rIdx}
+                                        type="button"
+                                        onClick={() =>
+                                          setSelectedCategoryByBlock((prev) => ({
+                                            ...prev,
+                                            [index]: rIdx,
+                                          }))
+                                        }
+                                        className="flex flex-col items-center gap-2 focus:outline-none group/tab"
+                                      >
+                                        {row.category?.icon && (
+                                          <img
+                                            src={!isDark && row.category.iconLight ? row.category.iconLight : row.category.icon}
+                                            alt={`${row.category.name} icon`}
+                                            className={`h-8 w-8 object-contain transition-opacity duration-300 ${
+                                              isSelected ? "opacity-100" : "opacity-40 group-hover/tab:opacity-70"
+                                            }`}
+                                          />
+                                        )}
+                                        {row.category?.name && (
+                                          <span
+                                            className={`text-xs whitespace-nowrap transition-colors duration-300 ${
+                                              isSelected
+                                                ? isDark
+                                                  ? "text-white font-semibold"
+                                                  : "text-black font-semibold"
+                                                : isDark
+                                                ? "text-neutral-500 group-hover/tab:text-neutral-300"
+                                                : "text-neutral-400 group-hover/tab:text-neutral-600"
+                                            }`}
+                                          >
+                                            {row.category.name}
+                                          </span>
+                                        )}
+                                        <span
+                                          className={`mt-1 h-[2px] w-6 rounded-full transition-colors duration-300 ${
+                                            isSelected
+                                              ? isDark
+                                                ? "bg-white"
+                                                : "bg-black"
+                                              : "bg-transparent"
+                                          }`}
+                                        />
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Selected category's data, shown as a real table with headers + gridlines */}
+                                {selectedRow && (
+                                  <table className="w-full text-left border-collapse min-w-[500px]">
+                                    <thead>
+                                      <tr
+                                        className={`border-b text-xs uppercase tracking-wider ${
+                                          isDark ? "border-neutral-700 text-neutral-400" : "border-neutral-300 text-neutral-500"
+                                        }`}
+                                      >
+                                        {block.headers && block.headers.length > 1 ? (
+                                          // Skip the first header ("Category") since it's shown via the tabs above
+                                          block.headers.slice(1).map((header, hIdx) => (
+                                            <th
+                                              key={hIdx}
+                                              className={`pb-3 px-4 font-semibold ${hIdx === 0 ? "text-left pl-0" : "text-left"}`}
+                                            >
+                                              {header}
+                                            </th>
+                                          ))
+                                        ) : (
+                                          <>
+                                            <th className="pb-3 px-4 font-semibold pl-0">Practices</th>
+                                            <th className="pb-3 px-4 font-semibold">Impact</th>
+                                            <th className="pb-3 px-4 font-semibold w-1/6">Agency</th>
+                                          </>
+                                        )}
+                                      </tr>
+                                    </thead>
+                                    <tbody className={`divide-y ${isDark ? "divide-neutral-800" : "divide-neutral-200"}`}>
+                                      {selectedRow.items?.map((item: any, itemIdx: number) => (
+                                        <tr key={itemIdx}>
+                                          <td
+                                            className={`py-4 px-4 pl-0 text-xs md:text-sm leading-relaxed ${
+                                              isDark ? "text-neutral-300" : "text-neutral-700"
+                                            }`}
+                                          >
+                                            {item.practice}
+                                          </td>
+                                          <td
+                                            className={`py-4 px-4 text-xs md:text-sm leading-relaxed ${
+                                              isDark ? "text-neutral-300" : "text-neutral-700"
+                                            }`}
+                                          >
+                                            {item.impact}
+                                          </td>
+
+                                          {/* Agency cell only on the first item row, spanning the rest */}
+                                          {itemIdx === 0 && selectedRow.agencies && selectedRow.agencies.length > 0 && (
+                                            <td
+                                              rowSpan={selectedRow.items.length}
+                                              className="py-6 px-4 align-middle"
+                                            >
+                                              <div className="flex flex-col gap-4 items-center justify-center">
+                                                {selectedRow.agencies.map((agencySrc: string, aIdx: number) => (
+                                                  <img
+                                                    key={aIdx}
+                                                    src={agencySrc}
+                                                    alt="Certifying agency"
+                                                    className="h-10 max-w-[70px] object-contain"
+                                                  />
+                                                ))}
+                                              </div>
+                                            </td>
+                                          )}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          // --- Simple string-array table (unchanged) ---
                           return (
                             <div key={index} className="w-full my-6 overflow-x-auto">
                               <table className="w-full text-left border-collapse min-w-[500px]">
@@ -603,67 +869,18 @@ export default function Home() {
 
                                 {/* Table Body */}
                                 <tbody className={`divide-y ${isDark ? "divide-neutral-800" : "divide-neutral-200"}`}>
-                                  {block.rows?.map((row: any, rIdx: number) => {
-                                    // Check if this row is a simple array of string cells (e.g., ["Individual Trip", "441.7 km", ...])
-                                    if (Array.isArray(row)) {
-                                      const isLastRow = rIdx === block.rows.length - 1;
-                                      return (
-                                        <tr
-                                          key={rIdx}
-                                          className={isLastRow ? `font-semibold ${isDark ? "text-white" : "text-neutral-900"}` : ""}
-                                        >
-                                          {row.map((cell: string, cIdx: number) => (
-                                            <td key={cIdx} className={`py-4 px-4 text-xs md:text-sm ${cIdx === 0 ? "pl-6" : ""}`}>
-                                              {cell}
-                                            </td>
-                                          ))}
-                                        </tr>
-                                      );
-                                    }
-
-                                    // Fallback: Standard object row format with category/items/agencies
+                                  {rows.map((row: any, rIdx: number) => {
+                                    const isLastRow = rIdx === rows.length - 1;
                                     return (
-                                      <tr key={rIdx}>
-                                        <td className="py-6 pl-6 pr-4 font-medium text-sm w-[14%] align-middle">
-                                          <div className="flex flex-col items-center justify-center gap-2 text-center">
-                                            {row.category?.icon && (
-                                              <img
-                                                src={!isDark && row.category.iconLight ? row.category.iconLight : row.category.icon}
-                                                alt={`${row.category.name} icon`}
-                                                className="h-8 w-8 object-contain transition-all duration-300"
-                                              />
-                                            )}
-                                            {row.category?.name && <span className="whitespace-nowrap">{row.category.name}</span>}
-                                          </div>
-                                        </td>
-
-                                        <td colSpan={2} className="py-6 px-0 align-top">
-                                          <div className="flex flex-col gap-6">
-                                            {row.items?.map((item: any, itemIdx: number) => (
-                                              <div key={itemIdx} className="grid grid-cols-2 gap-8 items-start">
-                                                <p className={`px-4 text-xs md:text-sm leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
-                                                  {item.practice}
-                                                </p>
-                                                <p className={`px-4 text-xs md:text-sm leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
-                                                  {item.impact}
-                                                </p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </td>
-
-                                        <td className="py-6 px-4 align-middle">
-                                          <div className="flex flex-col gap-4 items-center justify-center">
-                                            {row.agencies?.map((agencySrc: string, aIdx: number) => (
-                                              <img
-                                                key={aIdx}
-                                                src={agencySrc}
-                                                alt="Certifying agency"
-                                                className="h-12 max-w-[80px] object-contain"
-                                              />
-                                            ))}
-                                          </div>
-                                        </td>
+                                      <tr
+                                        key={rIdx}
+                                        className={isLastRow ? `font-semibold ${isDark ? "text-white" : "text-neutral-900"}` : ""}
+                                      >
+                                        {row.map((cell: string, cIdx: number) => (
+                                          <td key={cIdx} className={`py-4 px-4 text-xs md:text-sm ${cIdx === 0 ? "pl-6" : ""}`}>
+                                            {cell}
+                                          </td>
+                                        ))}
                                       </tr>
                                     );
                                   })}
@@ -674,14 +891,25 @@ export default function Home() {
                         }
 
                         if (block.type === "video") {
+                          const isAutoplay = (block as any).autoplay === true;
+                          const isLoop = (block as any).loop === true;
+                          const showControls = (block as any).controls !== false;
+
                           return (
                             <figure key={index} className="flex flex-col gap-2">
                               <div
                                 className={`relative w-full rounded-sm overflow-hidden ${
-                                  isDark ? "bg-neutral-800 border border-neutral-700" : "bg-neutral-100"
+                                  isDark ? "bg-neutral-800" : "bg-neutral-100"
                                 }`}
                               >
-                                <video controls className="w-full h-auto">
+                                <video
+                                  controls={showControls}
+                                  autoPlay={isAutoplay}
+                                  muted={isAutoplay}
+                                  playsInline={isAutoplay}
+                                  loop={isLoop}
+                                  className="w-full h-auto"
+                                >
                                   <source src={block.src} type="video/mp4" />
                                   Your browser does not support video playback.
                                 </video>
@@ -724,10 +952,8 @@ export default function Home() {
                           return (
                             <div key={index} className="w-full mt-2 mb-8 flex flex-col items-center gap-3">
                               <div
-                                className={`w-full max-w-lg mx-auto overflow-hidden rounded-xl border transition-colors duration-300 flex items-center justify-center ${
-                                  isDark
-                                    ? "border-neutral-800 bg-black"
-                                    : "border-neutral-200 bg-neutral-900"
+                                className={`w-full max-w-lg mx-auto overflow-hidden rounded-xl transition-colors duration-300 flex items-center justify-center ${
+                                  isDark ? "bg-black" : "bg-neutral-900"
                                 }`}
                                 style={{ height: block.height ? `${block.height}px` : "620px" }}
                               >
@@ -843,7 +1069,7 @@ export default function Home() {
                                             caption: block.caption,
                                           })
                                         }
-                                        className="relative rounded-lg overflow-hidden cursor-pointer group bg-transparent transition-transform duration-200 hover:scale-[1.015]"
+                                        className="relative rounded-lg overflow-hidden cursor-pointer group bg-transparent"
                                       >
                                         <img
                                           src={src}
@@ -865,7 +1091,7 @@ export default function Home() {
                                         caption: block.caption,
                                       })
                                     }
-                                    className="relative w-full rounded-lg overflow-hidden cursor-pointer group bg-transparent transition-transform duration-200 hover:scale-[1.015]"
+                                    className="relative w-full rounded-lg overflow-hidden cursor-pointer group bg-transparent"
                                   >
                                     <img
                                       src={featuredSrc}
@@ -887,6 +1113,78 @@ export default function Home() {
                                 </figcaption>
                               )}
                             </figure>
+                          );
+                        }
+
+                        // "video-feature": a title + short paragraph beside a looping,
+                        // autoplaying, muted video (e.g. a screen recording of a phone flow).
+                        // Not yet part of the shared ContentBlock union — see note below.
+                        if ((block as any).type === "video-feature") {
+                          const vf = block as any as {
+                            title: string;
+                            text: string;
+                            video: string;
+                            poster?: string;
+                            reverse?: boolean; // default: video on the left, text on the right. true = swap
+                          };
+
+                          const textCol = (
+                            <div className="flex flex-col gap-3 justify-center">
+                              <h3
+                                className={`text-lg md:text-xl font-semibold ${
+                                  isDark ? "text-white" : "text-neutral-900"
+                                }`}
+                              >
+                                {vf.title}
+                              </h3>
+                              <p
+                                className={`text-sm md:text-base leading-relaxed ${
+                                  isDark ? "text-neutral-300" : "text-neutral-700"
+                                }`}
+                              >
+                                {vf.text}
+                              </p>
+                            </div>
+                          );
+
+                          const videoCol = (
+                            <div className="flex justify-center">
+                              <div
+                                className={`w-full max-w-[320px] rounded-2xl overflow-hidden ${
+                                  isDark ? "bg-neutral-800" : "bg-neutral-100"
+                                }`}
+                              >
+                                <video
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  poster={vf.poster}
+                                  className="w-full h-auto block"
+                                >
+                                  <source src={vf.video} type="video/mp4" />
+                                </video>
+                              </div>
+                            </div>
+                          );
+
+                          return (
+                            <div
+                              key={index}
+                              className="w-full my-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center"
+                            >
+                              {vf.reverse ? (
+                                <>
+                                  {textCol}
+                                  {videoCol}
+                                </>
+                              ) : (
+                                <>
+                                  {videoCol}
+                                  {textCol}
+                                </>
+                              )}
+                            </div>
                           );
                         }
 

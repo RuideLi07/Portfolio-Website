@@ -37,7 +37,22 @@ export type ContentBlock =
     }
   | { type: "table"; headers: string[]; rows: TableRow[] | string[][] }
   | { type: "pipeline-steps"; steps: PipelineStep[] }
-  | { type: "video"; src: string; caption?: string }
+  | {
+      type: "video";
+      src: string;
+      caption?: string;
+      autoplay?: boolean; // default: false (click-to-play). true = autoplay + muted (required by browsers)
+      loop?: boolean; // default: false. true = video repeats after ending, independent of autoplay
+      controls?: boolean; // default: true (shows play/pause/scrub bar). false = hide all native controls
+    }
+  | {
+      type: "video-feature";
+      title: string;
+      text: string;
+      video: string;
+      poster?: string;
+      reverse?: boolean; // default: video on the left, text on the right. true = swap (text left, video right)
+    }
   | { type: "figma"; url: string; title?: string; height?: number; }
   | { type: "divider" };
 
@@ -50,6 +65,8 @@ export interface Project {
   tags?: string[];
   blocks: ContentBlock[];
   sectionTitles?: string[]; // one title per segment, in order, split by "divider" blocks
+  thumbnail?: string; // cover image for the project gallery grid. Falls back to the first "image" or "image-row" block if omitted
+  thumbnailLight?: string; // optional light-mode variant of thumbnail
 }
 
 export const PROJECTS: Project[] = [
@@ -61,6 +78,7 @@ export const PROJECTS: Project[] = [
     description: "A coordinated digital platform encouraging sustainable operations for Detroit’s Eastern Market through centralized logistics and eco-friendly production practices.",
     timeframe: "September 2025 - December 2025",
     tags: ["Experience Design", "Urban Strategy", "UX Research", "Sustainability"],
+    thumbnail: "/images/newtrality/EasternMarket.png",
     sectionTitles: [
       "Market Context & Research",
       "Routing Demo & Pipeline",
@@ -69,11 +87,10 @@ export const PROJECTS: Project[] = [
     ],
     blocks: [
       {
-        type: "image",
-        src: "/images/newtrality/EasternMarket.png",
-        alt: "Newtrality Main Landing Showcase",
-        caption: "Eastern Market",
-        showCaptionInline: false
+        type: "video",
+        src: "/images/newtrality/EasternMarketZoom.mp4",
+        autoplay: true,
+        controls: false
       },
       {
         type: "text",
@@ -341,81 +358,24 @@ export const PROJECTS: Project[] = [
         ],
       },
       {
-        type: "text",
-        content: "To eliminate friction in initial vendor onboarding, Newtrality introduces an interactive four-question micro-survey that establishes an operational baseline in under two minutes without requiring a complex audit. By gathering targeted data on business category, surplus management, packaging materials, and production scale, the platform's recommendation engine instantly outputs four tailored, high-impact sustainability practices. This seamless flow immediately converts intake data into actionable steps vendors can implement and verify to start earning stall credits.",
-        size: "base" 
+        type: "video-feature",
+        title: "Interactive Onboarding Survey",
+        text: "To eliminate friction in initial vendor onboarding, Newtrality introduces an interactive four-question micro-survey that establishes an operational baseline in under two minutes without requiring a complex audit. By gathering targeted data on business category, surplus management, packaging materials, and production scale, the platform's recommendation engine instantly outputs four tailored, high-impact sustainability practices.",
+        video: "/images/newtrality/OnboardingSurvey.mp4",
+        reverse: true,
       },
       {
-        type: "image-grid-featured",
-        gridImages: [
-          { src: "/images/newtrality/survey1.png", alt: "Vendor Type Selection" },
-          { src: "/images/newtrality/survey2.png", alt: "Container Usage Selection" },
-          { src: "/images/newtrality/survey3.png", alt: "Food Surplus Handling" },
-          { src: "/images/newtrality/survey4.png", alt: "Production Planning" },
-        ],
-        featuredImage: {
-          src: "/images/newtrality/survey5.png",
-          alt: "Recommended Practices Result Screen"
-        },
-        caption: "Interactive onboarding survey mapping vendor operations to tailor sustainability recommendations."
+        type: "video-feature",
+        title: "Practice Verification",
+        text: "Verifying a practice is done in just a few seconds on a phone. Vendors tap an action like donating surplus food or switching to compostable packaging, snap a quick photo or upload a receipt, and hit send. The app instantly updates the status so they always know when proof is approved and how many credits are heading their way, removing all the back-and-forth guessing about where a submission stands. Market managers review these submissions directly through an admin view to keep everything accountable, and once approved, credits release instantly into the vendor's balance.",
+        video: "/images/newtrality/PracticeVerification.mp4",
       },
       {
-        type: "text",
-        content: "Verifying a practice is done takes just a few seconds on a phone. Vendors tap an action like donating surplus food or switching to compostable packaging, snap a quick photo or upload a receipt, and hit send. The app instantly updates the status so they always know when proof is approved and how many credits are heading their way. This removes all the back-and-forth guessing about where a submission stands. Market managers review these submissions directly through an admin view to keep everything accountable, and once approved, credits release instantly into the vendor's balance.",
-        size: "base" 
-        },
-      {
-        type: "image-row",
-        showCaptionInline: true,
-        images: [
-          {
-            src: "/images/newtrality/Verify1.png",
-            alt: "Verify Page 1",
-          },
-          {
-            src: "/images/newtrality/Verify2.png",
-            alt: "Verify Page 2",
-          },
-          {
-            src: "/images/newtrality/Verify3.png",
-            alt: "Verify Page 3",
-          },
-          {
-            src: "/images/newtrality/Verify4.png",
-            alt: "Verify Page 4",
-          }
-        ],
-      },
-      {
-        type: "text",
-        content: "Scheduling a clustered delivery takes just a few steps. Vendors enter their pickup location and preferred time window, then select cargo details like vendor category, crate counts, and whether refrigeration is required. Once submitted, the app automatically calculates the most efficient shared route and assigns a driver. Vendors get instant confirmation showing their stop order, environmental savings, and the credits earned by scheduling the shared run.",
-        size: "base" 
-      },
-      {
-        type: "image-row",
-        showCaptionInline: false,
-        images: [
-          {
-            src: "/images/newtrality/Delivery1.png",
-            alt: "Delivery Page 1",
-            caption: "Address input"
-          },
-          {
-            src: "/images/newtrality/Delivery2.png",
-            alt: "Delivery Page 2",
-            caption: "Date and time selection"
-          },
-          {
-            src: "/images/newtrality/Delivery3.png",
-            alt: "Delivery Page 3",
-            caption: "Ti"
-          },
-          {
-            src: "/images/newtrality/Delivery4.png",
-            alt: "Delivery Page 4",
-            caption: "Delivery Schedule & Info"
-          }
-        ],
+        type: "video-feature",
+        title: "Shared Delivery Scheduling",
+        text: "Scheduling a clustered delivery takes just a few steps. Vendors enter their pickup location and preferred time window, then select cargo details like vendor category, crate counts, and whether refrigeration is required. Once submitted, the app automatically calculates the most efficient shared route and assigns a driver. Vendors get instant confirmation showing their stop order, environmental savings, and the credits earned by scheduling the shared run.",
+        video: "/images/newtrality/TransportationSchedule.mp4",
+        reverse: true,
       },
       {
         type: "text",
@@ -460,6 +420,7 @@ export const PROJECTS: Project[] = [
     title: "GrassHop",
     type: "design",
     description: "Grassroots community event discovery platform featuring dynamic distance filtering and 3D map navigation.",
+    thumbnail: "/images/grasshop-1.jpg",
     blocks: [
       {
         type: "image",
@@ -480,6 +441,7 @@ export const PROJECTS: Project[] = [
     title: "Māori Population Study",
     type: "research",
     description: "Spatial demographic analysis and custom map rendering exploring regional population trends.",
+    thumbnail: "https://picsum.photos/id/1019/1000/600",
     blocks: [
       {
         type: "image",
@@ -498,6 +460,7 @@ export const PROJECTS: Project[] = [
     title: "Project 4 Title",
     type: "research",
     description: "Brief overview or summary caption describing Project 4.",
+    thumbnail: "https://picsum.photos/id/1025/1000/600",
     blocks: [
       {
         type: "image",
