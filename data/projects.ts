@@ -99,6 +99,11 @@ export const PROJECTS: Project[] = [
       },
       {
         type: "text",
+        content: "Eastern Market is one of the oldest and most thriving parts of Detroit. Home to numerous active food businesses as well as a massive weekend farmers market, this district is also a short distance from downtown. It serves business owners, shoppers, tailgaters, residents, and more.",
+        size: "base" 
+      },
+      {
+        type: "text",
         content: "With 136 vendors selling everything from street food and artisan goods to fresh produce and local flowers. Farms and florists make up the single largest group on the floor. To sell at the market, vendors pay recurring stall lease rates. Seasonal Saturday leases range from $1,775 for farmers to $3,600 for specialty vendors, along with daily stall fees throughout the season.",
         size: "base" 
       },
@@ -116,12 +121,12 @@ export const PROJECTS: Project[] = [
         showCaptionInline: true,
         images: [
           {
-            src: "/images/newtrality/vendor1.jpeg",
+            src: "/images/newtrality/Vendor1.jpeg",
             alt: "Eastern Market Vendor 1",
             caption: "Eric, 3rd Generation Farmer, 57 years at Eastern Market",
           },
           {
-            src: "/images/newtrality/vendor2.jpeg",
+            src: "/images/newtrality/Vendor2.jpeg",
             alt: "Eastern Market Vendor 2",
             caption: "Charity, Clothing Designer, 4 years at Eastern Market",
           },
