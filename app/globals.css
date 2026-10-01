@@ -1,8 +1,26 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
+  /* Stop bounce at scroll boundaries without trapping gestures on image cards. */
+  html,
+  body,
+  main,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  [role="tabpanel"] {
+    overscroll-behavior: none;
+  }
+
+  html {
     background-color: #ffffff;
+  }
+
+  html:has([data-site-theme="dark"]) {
+    background-color: #171717;
+  }
+
+  body {
+    background-color: inherit;
     color: #171717;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }

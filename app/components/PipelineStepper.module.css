@@ -1,0 +1,21 @@
+.container { --text: #e5e5e5; --muted: #a3a3a3; --line: #404040; --accent: #fff; container-type: inline-size; width: 100%; margin: 4px 0 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); overflow: hidden; }
+.container[data-theme="light"] { --text: #262626; --muted: #525252; --line: #d4d4d4; --accent: #171717; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+.counter { margin-left: 12px; font-variant-numeric: tabular-nums; }
+.header button { cursor: pointer; color: var(--text); font-size: 12px; padding: 4px 8px; }
+.tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding: 0 20px; }
+.tabs button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; padding: 8px 0 12px; border-bottom: 2px solid var(--line); color: var(--muted); cursor: pointer; font-size: 11px; line-height: 1.4; }
+.tabs button[aria-selected="true"] { color: var(--accent); border-color: var(--accent); }
+.number { font-family: monospace; font-size: 13px; font-weight: 700; }
+.panels { padding: 24px 20px; }
+.panel { display: none; }
+.panel[data-active="true"] { display: block; }
+.panel h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.panel p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+.subSteps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 20px; }
+.subSteps > div { border-left: 2px solid var(--line); padding-left: 12px; }
+.tech { display: block; font-size: 10px; font-family: monospace; text-transform: uppercase; color: var(--muted); }
+.subSteps h4 { font-size: 13px; font-weight: 600; margin: 6px 0; }
+.subSteps p { font-size: 12px; }
+.container button:focus-visible, .panel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@container (max-width: 480px) { .tabs { gap: 8px; } .tabs button { font-size: 10px; } .subSteps { grid-template-columns: 1fr; gap: 12px; } }

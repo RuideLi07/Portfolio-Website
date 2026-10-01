@@ -26,7 +26,18 @@ export type PipelineStep = {
 };
 
 export type ContentBlock =
-  | { type: "text"; content: string; isBold?: boolean; size?: "sm" | "base" | "lg" | "xl" }
+  | { type: "interview-insights"; src: string; alt: string; caption: string; insights: string[] }
+  | { type: "video-text"; src: string; text: string; loopDelayMs?: number }
+  | { type: "competitor-table"; headers: string[]; rows: [string, string, string, string][]; logos: Record<string, string> }
+  | { type: "image-feature-pair"; title: string; text: string; images: Array<{ src: string; alt: string; caption: string }> }
+  | { type: "annotated-limitations" }
+  | { type: "heading"; content: string; sidebarTitle?: string }
+  | { type: "vendor-chart"; description?: string }
+  | ({ type: "image-feature"; title?: string; text: string; highlightTitle?: boolean; showPrototypeButton?: boolean } & (
+      | { src: string; alt: string; caption?: string; images?: never }
+      | { images: Array<{ src: string; alt: string; caption?: string }>; src?: never; alt?: never; caption?: never }
+    ))
+  | { type: "text"; content: string; orderedItems?: string[]; isBold?: boolean; size?: "sm" | "base" | "lg" | "xl" }
   | { type: "image"; src: string; srcLight?: string; alt?: string; caption?: string; showCaptionInline?: boolean; transparent?: boolean; width?: number; }
   | { type: "image-row"; showCaptionInline?: boolean; images: Array<{src: string; srcLight?: string; alt?: string; caption?: string; transparent?: boolean; width?: number;}>; }
   | {
@@ -35,7 +46,7 @@ export type ContentBlock =
       featuredImage: { src: string; srcLight?: string; alt?: string };
       caption?: string;
     }
-  | { type: "table"; headers: string[]; rows: TableRow[] | string[][] }
+  | { type: "table"; headers: string[]; rows: TableRow[] | string[][]; emphasizeLastRow?: boolean; autoCycleMs?: number }
   | { type: "pipeline-steps"; steps: PipelineStep[] }
   | {
       type: "video";
@@ -43,13 +54,15 @@ export type ContentBlock =
       caption?: string;
       autoplay?: boolean; // default: false (click-to-play). true = autoplay + muted (required by browsers)
       loop?: boolean; // default: false. true = video repeats after ending, independent of autoplay
+      loopDelayMs?: number; // pause on the final frame before repeating when loop is true
       controls?: boolean; // default: true (shows play/pause/scrub bar). false = hide all native controls
     }
   | {
       type: "video-feature";
       title: string;
-      text: string;
-      video: string;
+      text?: string;
+      video?: string;
+      demos?: Array<{ src: string; label: string; text?: string }>;
       poster?: string;
       reverse?: boolean; // default: video on the left, text on the right. true = swap (text left, video right)
     }
@@ -76,45 +89,62 @@ export const PROJECTS: Project[] = [
     title: "Newtrality",
     type: "design",
     description: "A coordinated digital platform encouraging sustainable operations for Detroit’s Eastern Market through centralized logistics and eco-friendly production practices.",
-    timeframe: "September 2025 - December 2025",
+    timeframe: "August 2025 - December 2025",
     tags: ["Experience Design", "Urban Strategy", "UX Research", "Sustainability"],
     thumbnail: "/images/newtrality/EasternMarket.png",
     sectionTitles: [
-      "Market Context & Research",
-      "Routing Demo & Pipeline",
-      "App Walkthrough",
-      "Interactive Prototype",
+      "Introduction",
+      "Context & Motivation",
+      "Production Practice",
+      "Transportation",
+      "Reward System",
+      "Live Prototype",
     ],
     blocks: [
       {
-        type: "video",
+        type: "heading",
+        content: "Introduction",
+      },
+      {
+        type: "image-feature",
+        text: "Newtrality is an app built to encourage farmers market vendors to adopt sustainable production and transportation practices in their daily operations. It turns green choices into redeemable credits that vendors can trade in for practical perks like discounted stall fees or business support.",
+        showPrototypeButton: true,
+        images: [
+          { src: "/images/newtrality/LandingPage1.png", alt: "Newtrality welcome screen" },
+          { src: "/images/newtrality/LandingPage3.png", alt: "Newtrality home dashboard" },
+        ],
+      },
+      {
+      type: "divider",
+      },
+      {
+        type: "heading",
+        content: "Site Context",
+      },
+      {
+        type: "video-text",
         src: "/images/newtrality/EasternMarketZoom.mp4",
-        autoplay: true,
-        controls: false
+        loopDelayMs: 6000,
+        text: "Eastern Market is one of the oldest and most thriving parts of Detroit. Home to numerous active food businesses as well as a massive weekend farmers market, this district is also a short distance from downtown. It serves business owners, shoppers, tailgaters, residents, and more.",
       },
       {
-        type: "text",
-        content: "Eastern Market is one of the oldest and most thriving parts of Detroit. Home to numerous active food businesses as well as a massive weekend farmers market, this district is also a short distance from downtown. It serves business owners, shoppers, tailgaters, residents, and more.",
-        size: "base" 
+        type: "vendor-chart",
+        description: "With 136 vendors selling everything from street food and artisan goods to fresh produce and local flowers. Farms and florists make up the single largest group on the floor. To sell at the market, vendors pay recurring stall lease rates. Seasonal Saturday leases range from $1,775 for farmers to $3,600 for specialty vendors, along with daily stall fees throughout the season.",
       },
       {
-        type: "text",
-        content: "Eastern Market is one of the oldest and most thriving parts of Detroit. Home to numerous active food businesses as well as a massive weekend farmers market, this district is also a short distance from downtown. It serves business owners, shoppers, tailgaters, residents, and more.",
-        size: "base" 
+        type:"heading",
+        content:"Motivation"
       },
       {
-        type: "text",
-        content: "With 136 vendors selling everything from street food and artisan goods to fresh produce and local flowers. Farms and florists make up the single largest group on the floor. To sell at the market, vendors pay recurring stall lease rates. Seasonal Saturday leases range from $1,775 for farmers to $3,600 for specialty vendors, along with daily stall fees throughout the season.",
-        size: "base" 
-      },
-      {
-        type: "image",
-        src: "/images/newtrality/VendorCompositionDark.png",
-        srcLight: "/images/newtrality/VendorCompositionBright.png",
-        alt: "Vendor Composition at Eastern Market",
-        caption: "Breakdown of Eastern Market vendors by categories",
-        transparent: true, // <--- Removes container background & border
-        width: 600,
+        type: "interview-insights",
+        src: "/images/newtrality/EasternMarketCEO.jpeg",
+        alt: "Eastern Market CEO at the market",
+        caption: "Katy Trudeau, CEO of the Eastern Market Development Corporation",
+        insights: [
+          "Operations are too decentralized.",
+          "Vendor deliveries are difficult to coordinate during busy market hours.",
+          "Desire for Eastern Market's'operations to be more sustainable.",
+        ],
       },
       {
         type: "image-row",
@@ -133,6 +163,14 @@ export const PROJECTS: Project[] = [
         ],
       },
       {
+      type: "divider",
+      },
+      {
+        type: "heading",
+        content: "Sustainable Production Practice Research",
+        sidebarTitle: "Research",
+      },
+      {
         type: "text",
         content: "To support different vendors in adopting relevant sustainable practice. Newtrality outlines a category-specific framework that list out practical, high-impact sustainable operations to their concrete environmental benefits and certifying agencies.",
         size: "base" 
@@ -140,6 +178,7 @@ export const PROJECTS: Project[] = [
       {
         type: "table",
         headers: ["Category", "Practices", "Impact", "Agency"],
+        autoCycleMs: 6000,
         rows: [
           {
             category: { name: "Dining", icon: "/images/newtrality/DiningIconDark.png", iconLight: "/images/newtrality/DiningIconLight.png"},
@@ -233,6 +272,27 @@ export const PROJECTS: Project[] = [
           }
         ]
       },
+
+      {
+        type:"heading",
+        content:"Vendor App Features",
+        sidebarTitle: "App Feature",
+      },
+      {
+        type: "video-feature",
+        title: "Simple Onboarding Survey",
+        text: "To eliminate friction in initial vendor onboarding, Newtrality introduces an interactive four-question micro-survey that establishes an operational baseline in under two minutes without requiring a complex audit. By gathering targeted data on business category, surplus management, packaging materials, and production scale, the platform's recommendation engine instantly outputs four tailored, high-impact sustainability practices.",
+        video: "/images/newtrality/OnboardingSurvey.mp4",
+        reverse: true,
+      },
+      {
+        type: "video-feature",
+        title: "Practice Verification",
+        text: "Verifying a practice is done in just a few seconds on a phone. Vendors tap an action like donating surplus food or switching to compostable packaging, snap a quick photo or upload a receipt, and hit send. The app instantly updates the status so they always know when proof is approved and how many credits are heading their way, removing all the back-and-forth guessing about where a submission stands. Market managers review these submissions directly through an admin view to keep everything accountable, and once approved, credits release instantly into the vendor's balance.",
+        video: "/images/newtrality/PracticeVerification.mp4",
+      },
+      { type: "divider" },
+      { type: "heading", content: "Shared Delivery Research", sidebarTitle: "Research" },
       {
         type: "text",
         content: "As shown in the illustration, this is a current real-world scenario of a selected group of 20 vendors here at Eastern Market. The thickness of line represents the density of travel. The thicker the line is, the more deliveries pass the same route. As we can see, the density of delivery is quite high along some highways and arterial roads.",
@@ -269,7 +329,21 @@ export const PROJECTS: Project[] = [
         ],
       },
       {
-      type: "divider",
+        type:"heading",
+        content:"Vendor App Features",
+        sidebarTitle: "App Feature",
+      },
+      {
+        type: "video-feature",
+        title: "Shared Delivery Scheduling",
+        text: "Scheduling a clustered delivery takes just a few steps. Vendors enter their pickup location and preferred time window, then select cargo details like vendor category, crate counts, and whether refrigeration is required. Once submitted, the app automatically calculates the most efficient shared route and assigns a driver. Vendors get instant confirmation showing their stop order, environmental savings, and the credits earned by scheduling the shared run.",
+        video: "/images/newtrality/TransportationSchedule.mp4",
+        reverse: true,
+      },
+      {
+        type:"heading",
+        content:"How does Market Administration Plan the route?",
+        sidebarTitle: "Admin Demo",
       },
       {
         type: "text",
@@ -337,73 +411,10 @@ export const PROJECTS: Project[] = [
       type: "divider",
       },
       {
-        type: "text",
-        content: "Newtrality is an app built to encourage farmers market vendors to adopt sustainable practices in their daily operations. It turns green choices into redeemable credits that vendors can trade in for practical perks like discounted stall fees or business support. The home screen gives vendors a clear view of their monthly progress, quick access to log new actions, and simple ways to join shared delivery program.",
-        size: "base" 
-        },
-      {
-        type: "image-row",
-        showCaptionInline: true,
-        images: [
-          {
-            src: "/images/newtrality/LandingPage1.png",
-            alt: "Landing Page 1",
-            width: 200,
-          },
-          {
-            src: "/images/newtrality/LandingPage2.png",
-            alt: "Landing Page 2",
-            width: 200,
-          },
-          {
-            src: "/images/newtrality/LandingPage3.png",
-            alt: "Landing Page 3",
-            width: 200,
-          }
-        ],
-      },
-      {
         type: "video-feature",
-        title: "Interactive Onboarding Survey",
-        text: "To eliminate friction in initial vendor onboarding, Newtrality introduces an interactive four-question micro-survey that establishes an operational baseline in under two minutes without requiring a complex audit. By gathering targeted data on business category, surplus management, packaging materials, and production scale, the platform's recommendation engine instantly outputs four tailored, high-impact sustainability practices.",
-        video: "/images/newtrality/OnboardingSurvey.mp4",
-        reverse: true,
-      },
-      {
-        type: "video-feature",
-        title: "Practice Verification",
-        text: "Verifying a practice is done in just a few seconds on a phone. Vendors tap an action like donating surplus food or switching to compostable packaging, snap a quick photo or upload a receipt, and hit send. The app instantly updates the status so they always know when proof is approved and how many credits are heading their way, removing all the back-and-forth guessing about where a submission stands. Market managers review these submissions directly through an admin view to keep everything accountable, and once approved, credits release instantly into the vendor's balance.",
-        video: "/images/newtrality/PracticeVerification.mp4",
-      },
-      {
-        type: "video-feature",
-        title: "Shared Delivery Scheduling",
-        text: "Scheduling a clustered delivery takes just a few steps. Vendors enter their pickup location and preferred time window, then select cargo details like vendor category, crate counts, and whether refrigeration is required. Once submitted, the app automatically calculates the most efficient shared route and assigns a driver. Vendors get instant confirmation showing their stop order, environmental savings, and the credits earned by scheduling the shared run.",
-        video: "/images/newtrality/TransportationSchedule.mp4",
-        reverse: true,
-      },
-      {
-        type: "text",
-        content: "After earning credits, vendors can track and cash them in on the rewards tab. The dashboard breaks down credit history with an activity log and visual breakdown so vendors see exactly where their earnings come from. When ready to redeem, they can apply credits toward market perks like rent reductions, wellness grants, or branding photography sessions. Everything is bundled into a clear cart summary before confirmation to ensure total control over their balance.",
-        size: "base"
-      },
-      {
-        type: "image-row",
-        showCaptionInline: false,
-        images: [
-          {
-            src: "/images/newtrality/Reward1.png",
-            alt: "Reward Page 1",
-            caption: "Overview",
-            width: 200
-          },
-          {
-            src: "/images/newtrality/Reward2.png",
-            alt: "Reward Page 2",
-            caption: "Select and redeem rewards",
-            width: 200
-          },
-        ],
+        title: "Reward System",
+        text: "After earning credits, vendors can track and cash them in on the rewards tab. The dashboard breaks down credit history with an activity log and visual breakdown so vendors see exactly where their earnings come from. When ready to redeem, they can apply credits toward market perks like rent reductions, wellness grants, or branding photography sessions. Everything is bundled into a clear cart summary before confirmation to ensure total control over their balance.",
+        video: "/images/newtrality/RewardRedemption.mp4",
       },
       {
       type: "divider",
@@ -425,18 +436,106 @@ export const PROJECTS: Project[] = [
     title: "GrassHop",
     type: "design",
     description: "Grassroots community event discovery platform featuring dynamic distance filtering and 3D map navigation.",
-    thumbnail: "/images/grasshop-1.jpg",
+    timeframe: "November 2024 - January 2024",
+    tags: ["Experience Design", "Urban Strategy", "UX Research", "Sustainability"],
+    thumbnail: "/images/grasshop/GrassHopLanding.png",
+    sectionTitles: ["Introduction", "Motivation", "Competitive Analysis", "App Features", "Live Prototype"],
     blocks: [
       {
-        type: "image",
-        src: "/images/grasshop-1.jpg",
-        alt: "GrassHop Showcase",
+        type: "heading",
+        content: "Introduction",
       },
       {
-        type: "text",
-        content:
+        type: "image-feature",
+        text:
           "GrassHop connects local neighborhood organizers and residents through real-time event mapping and micro-sponsorship logistics.",
+        showPrototypeButton: true,
+        images: [
+          { src: "/images/grasshop/Landing1.png", alt: "GrassHop landing screen 1" },
+          { src: "/images/grasshop/Landing2.png", alt: "GrassHop landing screen 2" },
+        ],
       },
+      { type: "divider" },
+      { type: "heading", content: "Motivation"},
+      {
+        type: "text",
+        size: "base",
+        content: "Neighborhood level community events such as pickup games, group runs, swaps, cleanups, and small gatherings are often hard to discover unless you already know the right people or follow the right local accounts. GrassHop focuses on two primary goals:",
+        orderedItems: [
+          "Let people explore nearby grassroot events based on their desired travel time and mode of transportation.",
+          "Give local organizers intuitive tools to share locations, instructions, and resource needs.",
+        ],
+      },
+      { type: "divider" },
+      { type: "heading", content: "Existing Event Discovery Platforms", sidebarTitle: "Competitors" },
+      {
+        type: "competitor-table",
+        headers: ["Primary Discovery Model", "Primary User Behavior", "Key Features"],
+        logos: {
+          Eventbrite: "/images/grasshop/AppLogo/EventBrite.png",
+          Meetup: "/images/grasshop/AppLogo/Meetup.png",
+          Luma: "/images/grasshop/AppLogo/Luma.png",
+          Partiful: "/images/grasshop/AppLogo/Partiful.png",
+          Facebook: "/images/grasshop/AppLogo/Facebook.png",
+          Instagram: "/images/grasshop/AppLogo/Instagram.png",
+        },
+        rows: [
+          ["Eventbrite","Search-led event marketplace. People browse by destination, date, and category, narrowing a broad catalog to events that match a planned outing.","Search for an activity, compare listings, review timing and ticket options, then register. Following organizers and saving events supports return visits and future planning.","Structured event pages, ticket purchasing, saved events, and organizer following connect discovery with booking. Its strength is helping users evaluate an event and commit to attending."],
+          ["Meetup","Interest-led community discovery. Events are connected to groups built around shared hobbies, activities, or identities, making the community a central entry point.","Find a relevant group or event, RSVP, and get to know people through repeated participation. The journey encourages an ongoing relationship with a community beyond a single gathering.","Group profiles, event listings, RSVPs, and location-based recommendations support recurring participation. A strong reference for building community continuity around shared interests."],
+          ["Luma","Calendar-led discovery with city and category browsing. Following curated calendars creates a stream of upcoming events from communities and hosts that users choose.","Explore events, follow relevant calendars, and register for gatherings. Calendar subscriptions and personal calendar syncing help people keep track of future plans.","Public event calendars, registration pages, personalized discovery, and calendar syncing connect event promotion with planning. Its strength is maintaining a relationship between hosts and their audiences."],
+          ["Partiful","Invitation-led social discovery. Shared event links and friends’ attendance create entry points, while Explore also surfaces local events and new communities.","Open an invitation, review the gathering, RSVP, and coordinate with the host. Seeing friends’ plans can help people decide which events they want to join.","Customizable invitations, RSVP tracking, guest questionnaires, and text updates simplify informal hosting. Social context and lightweight coordination are useful references for neighborhood gatherings."],
+          ["Facebook","Social-network and group-led discovery. Events circulate through community groups, pages, and personal connections, alongside recommendations for nearby activities.","Encounter an event through a group or shared post, review the details, and discuss plans with others. Existing community relationships can give a gathering context before someone attends.","Group events and public or private event visibility support different community needs. Its strength is distributing event information through established networks; discovery is part of a broader social experience."],
+          ["Instagram","Visual and social discovery. Organizers introduce events through posts, Reels, and Stories; reposts and location-tagged content create additional paths to local activities.","Notice an event while browsing, share it with friends, and look for details from the organizer. This journey often begins with the appeal of the content rather than an explicit event search.","Visual promotion, reposts, messaging, and location-tagged content help events spread socially. Instagram Map also supports place-based content discovery, offering a useful reference for connecting local activity with location."],
+        ],
+      },
+      { type: "heading", content: "Limitations of current Event Discovery Platform", sidebarTitle: "Limitations" },
+      {
+        type: "image-feature",
+        title: "Lack of Spatial Discovery",
+        highlightTitle: true,
+        text: "Traditional list views force you to scroll through events one by one instead of showing what’s actually happening around you. When you turn a real neighborhood into a flat vertical feed, you lose all sense of place. It becomes almost impossible to see what is down the street, spot busy local hubs, or stumble upon small community events happening right around the corner.",
+        src: "/images/grasshop/Limitation1.png",
+        alt: "Lack of spatial discovery: a scrolling Eventbrite feed presents events one by one without showing their neighborhood context, making nearby events and local hubs harder to discover.",
+        caption: "Eventbrite Discover Page",
+      },
+      { type: "annotated-limitations" },
+      {
+        type: "image-feature-pair",
+        title: "Outdated Radius Filtering",
+        text: "Standard distance filters rely on a simple circle, treating space as if cities are flat and frictionless. In reality, travel is shaped by transit lines, rivers, and highway barriers. By prioritizing straight-line miles over actual travel time, these filters create artificial blind spots—hiding highly accessible events just outside an arbitrary circle while recommending closer venues that are far harder to reach.",
+        images: [
+          { src: "/images/grasshop/Limitation3(1).png", alt: "Meetup filter screen with an enlarged Distance slider set to 5 miles.", caption: "Meetup Filter Page" },
+          { src: "/images/grasshop/Limitation3(2).png", alt: "Meetup map view showing nearby events across New York neighborhoods.", caption: "Meetup Map View" },
+        ],
+      },
+      { type: "divider" },
+      { type: "heading", content: "Key Features of GrassHop"},
+      {
+        type: "video-feature",
+        title: "Dynamic Locality Filtering",
+        text: "Most apps use a fixed radius to show what is “nearby.” GrassHop instead lets users choose how much time they have and their mode of transportation then shows events they can realistically reach within that window.",
+        video: "/images/grasshop/DynamicLocality.mp4",
+        reverse: true,
+      },
+      {
+        type: "video-feature",
+        title: "Precise Location",
+        demos: [
+          { src: "/images/grasshop/PinpointLocationOrganizer.mp4", label: "Organizer", text: "Alongside entering a traditional street address, organizers can choose to drop a pin directly on the map to mark the exact meeting spot. They can also add custom arrival instructions so attendees know exactly where to go."},
+          { src: "/images/grasshop/PinpointLocationAttendee.mp4", label: "Attendee", text: "On the event page, attendees and explorers can easily see both the exact location pin and the arrival message before heading there." },
+        ],
+      },
+      {
+        type: "video-feature",
+        title: "Logistic Request",
+        reverse: true,
+        demos: [
+          { src: "/images/grasshop/LogisticRequestOrganizer.mp4", label: "Organizer", text: "When creating an event, organizers can add a simple list of supplies or support they need, such as water, speakers, equipment, or first-aid kits. This makes it easier to share the work of putting an grassroot event together instead of leaving everything to one person."},
+          { src: "/images/grasshop/LogisticRequestAttendee.mp4", label: "Attendee", text:"Attendees can see what is still needed on the event page and volunteer to bring an item. Once someone claims a request, it is marked accordingly, helping the group coordinate before the event and avoid duplicate contributions." },
+        ],
+      },
+      { type: "divider" },
+      { type: "heading", content: "Interact with the final prototype here"}
     ],
   },
 

@@ -1,7 +1,16 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { PROJECTS, ContentBlock } from "@/data/projects";
+import VendorChart from "./components/VendorChart";
+import ProjectVideo from "./components/ProjectVideo";
+import vendorStyles from "./components/VendorChart.module.css";
+import imageFeatureStyles from "./components/ImageFeature.module.css";
+import AnnotatedLimitations from "./components/AnnotatedLimitations";
+import CompetitorTable from "./components/CompetitorTable";
+import PipelineStepper from "./components/PipelineStepper";
+import InterviewInsights from "./components/InterviewInsights";
+import VideoFeature from "./components/VideoFeature";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"landing" | "design" | "research" | "info">("landing");
@@ -29,38 +38,39 @@ export default function Home() {
 
   const activeProject = PROJECTS.find((p) => p.id === activeId) || null;
 
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    activeProject?.blocks.forEach((block, index) => {
+      if (block.type !== "table" || !block.autoCycleMs || block.rows.length < 2 || Array.isArray(block.rows[0])) return;
+      timers.push(setTimeout(() => {
+        setSelectedCategoryByBlock((previous) => ({
+          ...previous,
+          [index]: ((previous[index] ?? 0) + 1) % block.rows.length,
+        }));
+      }, block.autoCycleMs));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [activeProject, selectedCategoryByBlock]);
+
   // Derive sections from divider positions + sectionTitles, so section boundaries
   // stay in sync with the content automatically instead of hardcoded block indices.
   const sections = useMemo(() => {
-    if (!activeProject?.sectionTitles || activeProject.sectionTitles.length === 0) {
-      return undefined;
-    }
-
-    const result: { id: string; title: string; blockIndex: number }[] = [];
-    let titleIdx = 0;
-    let segmentStart = 0;
-
-    activeProject.blocks.forEach((block, i) => {
-      if (block.type === "divider") {
-        result.push({
-          id: `sec-${titleIdx}`,
-          title: activeProject.sectionTitles![titleIdx] ?? `Section ${titleIdx + 1}`,
-          blockIndex: segmentStart,
-        });
-        titleIdx++;
-        segmentStart = i + 1;
-      }
+    if (!activeProject) return undefined;
+    const starts = [0, ...activeProject.blocks.flatMap((block, index) => block.type === "divider" ? [index + 1] : [])];
+    return starts.filter((start) => start < activeProject.blocks.length).map((start, index) => {
+      const end = starts[index + 1] ?? activeProject.blocks.length;
+      return {
+        id: `sec-${index}`,
+        title: activeProject.sectionTitles?.[index] ?? (index === 0 ? "Overview" : `Section ${index + 1}`),
+        blockIndex: start,
+        children: activeProject.blocks.slice(start, end).flatMap((block, offset) =>
+          block.type === "heading" ? [{ id: `heading-${start + offset}`, title: block.sidebarTitle ?? block.content, blockIndex: start + offset }] : []
+        ),
+      };
     });
-
-    // Final segment after the last divider (or the only segment if there are no dividers)
-    result.push({
-      id: `sec-${titleIdx}`,
-      title: activeProject.sectionTitles![titleIdx] ?? `Section ${titleIdx + 1}`,
-      blockIndex: segmentStart,
-    });
-
-    return result;
   }, [activeProject]);
+
+  const navigationTargets = sections?.flatMap((section) => [section, ...section.children]);
 
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     const scrollTop = e.currentTarget.scrollTop;
@@ -78,9 +88,9 @@ export default function Home() {
     const activationLine = 160;
     let current = sections[0].id;
 
-    for (const section of sections) {
+    for (const section of navigationTargets ?? []) {
       const el = sectionRefs.current[section.id];
-      if (el && el.offsetTop - scrollTop <= activationLine) {
+      if (el && el.getBoundingClientRect().top - e.currentTarget.getBoundingClientRect().top <= activationLine) {
         current = section.id;
       }
     }
@@ -127,7 +137,7 @@ export default function Home() {
     if (!container || !target) return;
 
     const activationLine = 160;
-    const top = target.offsetTop - activationLine;
+    const top = target.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - activationLine;
 
     container.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
     setActiveSectionId(sectionId);
@@ -157,7 +167,8 @@ export default function Home() {
 
   return (
     <div
-      className={`h-screen w-screen overflow-hidden font-sans flex flex-col justify-between transition-colors duration-300 ${
+      data-site-theme={isDark ? "dark" : "light"}
+      className={`h-dvh w-full overflow-hidden font-sans flex flex-col justify-between transition-colors duration-300 ${
         isDark ? "bg-neutral-900 text-neutral-100" : "bg-white text-neutral-900"
       }`}
     >
@@ -169,15 +180,15 @@ export default function Home() {
       >
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleTabChange("landing")}
+            onClick={() => handleTabChange(isScrolled && activeTab === "design" ? "design" : "landing")}
             className={`font-normal tracking-tight text-left hover:opacity-70 transition-all duration-300 ${
               isScrolled ? "text-xs md:text-sm" : "text-3xl md:text-4xl"
             } ${isDark ? "text-white" : "text-black"}`}
           >
-            Richard Ruide Li
+            {isScrolled && activeTab === "design" ? "Design" : "Richard Ruide Li"}
           </button>
 
-          {/* Active Project Name next to your name when scrolled */}
+          {/* Active project breadcrumb when scrolled */}
           {isScrolled && activeProject && (
             <span
               className={`text-xs md:text-sm font-light transition-all duration-300 ${
@@ -263,7 +274,7 @@ export default function Home() {
             }`}
           >
             <span className={!isDark ? "font-semibold text-black" : "font-normal opacity-70"}>
-              Bright
+              Light
             </span>{" "}
             /{" "}
             <span className={isDark ? "font-semibold text-white" : "font-normal opacity-70"}>
@@ -378,21 +389,24 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr_320px] h-full overflow-hidden">
             {/* Left Sidebar Index */}
             <aside className="flex flex-col justify-between p-6 md:p-8 flex-shrink-0 select-none">
-              <div className="flex flex-col gap-4">
+              <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
                 {sections ? (
                   /* --- SCROLL-TRACKED SECTION TIMELINE RAIL --- */
-                  <div className="flex flex-col animate-in fade-in duration-300">
+                  <nav aria-label="Project sections" className="flex flex-col animate-in fade-in duration-300">
                     {sections.map((section, i) => {
-                      const activeIdx = sections.findIndex((s) => s.id === activeSectionId);
-                      const isActive = section.id === activeSectionId;
+                      const currentSectionId = activeSectionId ?? sections[0].id;
+                      const activeIdx = sections.findIndex((s) => s.id === currentSectionId || s.children.some((child) => child.id === currentSectionId));
+                      const isActive = activeIdx === i;
                       const isPast = activeIdx > i;
 
                       return (
                         <div key={section.id} className="flex flex-col items-start">
                           <button
                             type="button"
+                            aria-current={isActive ? "location" : undefined}
+                            aria-expanded={section.children.length > 1 ? isActive : undefined}
                             onClick={() => scrollToSection(section.id)}
-                            className="flex items-start gap-3 text-left focus:outline-none group/rail"
+                            className="flex min-h-[30px] w-full items-start gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-4 group/rail"
                           >
                             <span
                               className={`mt-[3px] w-2.5 h-2.5 rounded-full border transition-colors duration-300 flex-shrink-0 group-hover/rail:border-neutral-300 ${
@@ -419,6 +433,21 @@ export default function Home() {
                               {section.title}
                             </span>
                           </button>
+                          {isActive && section.children.length > 1 && (
+                            <div className="ml-[22px] mb-3 flex flex-col gap-2 border-l border-neutral-500/30 pl-3">
+                              {section.children.map((child) => (
+                                <button
+                                  key={child.id}
+                                  type="button"
+                                  onClick={() => scrollToSection(child.id)}
+                                  aria-current={currentSectionId === child.id ? "location" : undefined}
+                                  className={`text-left text-[11px] leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 ${currentSectionId === child.id ? (isDark ? "text-white font-medium" : "text-black font-medium") : (isDark ? "text-neutral-500 hover:text-neutral-300" : "text-neutral-500 hover:text-neutral-800")}`}
+                                >
+                                  {child.title}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                           {i < sections.length - 1 && (
                             <div
                               className={`w-[1px] h-8 ml-[4.5px] transition-colors duration-500 ${
@@ -435,7 +464,7 @@ export default function Home() {
                         </div>
                       );
                     })}
-                  </div>
+                  </nav>
                 ) : (
                   /* --- DEFAULT PROJECT LIST --- */
                   <>
@@ -528,12 +557,124 @@ export default function Home() {
                     {activeProject.blocks?.map((block: ContentBlock, index: number) => {
                       // Does a section start at this block index? If so, wrap the
                       // rendered output in a ref div so scroll tracking can find it.
-                      const section = sections?.find((s) => s.blockIndex === index);
+                      const targets = navigationTargets?.filter((target) => target.blockIndex === index);
 
                       const rendered = (() => {
+                        if (block.type === "interview-insights") {
+                          return <InterviewInsights key={index} block={block} />;
+                        }
+                        if (block.type === "video-text") {
+                          return (
+                            <div key={index} className={imageFeatureStyles.container}>
+                              <div className={imageFeatureStyles.videoLayout}>
+                                <p className={`text-sm md:text-base leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{block.text}</p>
+                                <ProjectVideo
+                                  key={block.src}
+                                  src={block.src}
+                                  autoPlay muted playsInline loop
+                                  loopDelayMs={block.loopDelayMs}
+                                  controls={false}
+                                  aria-label="Aerial zoom into Detroit’s Eastern Market"
+                                  className="w-full h-auto rounded-sm"
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
+                        if (block.type === "competitor-table") {
+                          return <CompetitorTable key={index} block={block} isDark={isDark} />;
+                        }
+                        if (block.type === "image-feature-pair") {
+                          return (
+                            <div key={index} className={imageFeatureStyles.container}>
+                              <section className={imageFeatureStyles.pairLayout}>
+                                <div>
+                                  <h3 className="mb-3 text-lg font-semibold"><span className={imageFeatureStyles.highlightTitle}>{block.title}</span></h3>
+                                  <p className={`text-sm md:text-base leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{block.text}</p>
+                                </div>
+                                <div className={imageFeatureStyles.pairImages}>
+                                  {block.images.map((img) => (
+                                    <figure key={img.src} className={imageFeatureStyles.figure}>
+                                      <button type="button" className={imageFeatureStyles.imageButton} aria-label={`Enlarge ${img.caption}`} onClick={() => setExpandedImage(img)}>
+                                        <img src={img.src} alt={img.alt} className={imageFeatureStyles.pairImage} />
+                                      </button>
+                                      <figcaption className={`text-xs text-center ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{img.caption}</figcaption>
+                                    </figure>
+                                  ))}
+                                </div>
+                              </section>
+                            </div>
+                          );
+                        }
+                        if (block.type === "annotated-limitations") {
+                          return <AnnotatedLimitations key={index} />;
+                        }
+                        if (block.type === "image-feature") {
+                          const featureImages = block.images ?? [{ src: block.src, alt: block.alt, caption: block.caption }];
+                          const prototypeIndex = activeProject.blocks.findIndex((item) => item.type === "figma");
+                          const prototypeSection = prototypeIndex >= 0
+                            ? sections?.slice().reverse().find((item) => item.blockIndex <= prototypeIndex)
+                            : sections?.find((item) => item.title === "Live Prototype");
+                          return (
+                            <div key={index} className={imageFeatureStyles.container}>
+                              <section className={block.images ? imageFeatureStyles.multiLayout : imageFeatureStyles.layout}>
+                                <div>
+                                  {block.title && <h3 className={`mb-3 text-lg font-semibold ${isDark ? "text-neutral-100" : "text-neutral-900"}`}>
+                                    <span className={block.highlightTitle ? imageFeatureStyles.highlightTitle : undefined}>{block.title}</span>
+                                  </h3>}
+                                  <p className={`text-sm md:text-base leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{block.text}</p>
+                                  {block.showPrototypeButton && prototypeSection && (
+                                    <button
+                                      type="button"
+                                      onClick={() => scrollToSection(prototypeSection.id)}
+                                      className={`mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 ${isDark ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-700"}`}
+                                    >
+                                      View Live Prototype <span aria-hidden="true">↓</span>
+                                    </button>
+                                  )}
+                                </div>
+                                <div className={block.images ? imageFeatureStyles.multiImages : undefined}>
+                                {featureImages.map((img) => <figure key={img.src} className={imageFeatureStyles.figure}>
+                                  <button
+                                    type="button"
+                                    className={imageFeatureStyles.imageButton}
+                                    aria-label={`Enlarge ${img.caption || img.alt}`}
+                                    onClick={() => setExpandedImage(img)}
+                                  >
+                                    <img src={img.src} alt={img.alt} className={imageFeatureStyles.image} />
+                                  </button>
+                                  {img.caption && <figcaption className={`text-xs text-center ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{img.caption}</figcaption>}
+                                </figure>)}
+                                </div>
+                              </section>
+                            </div>
+                          );
+                        }
+                        if (block.type === "heading") {
+                          return (
+                            <h2 key={index} className={`mt-6 text-xl md:text-2xl font-semibold ${isDark ? "text-neutral-100" : "text-neutral-900"}`}>
+                              {block.content}
+                            </h2>
+                          );
+                        }
+                        if (block.type === "vendor-chart") {
+                          return (
+                            <div key={index} className={vendorStyles.layoutContainer}>
+                              <div className={block.description ? vendorStyles.layout : undefined}>
+                                <VendorChart />
+                                {block.description && (
+                                  <p className={`text-sm md:text-base leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+                                    {block.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
                         if (block.type === "text") {
                           const textBlock = block as {
                             content: string;
+                            orderedItems?: string[];
                             isBold?: boolean;
                             size?: "sm" | "base" | "lg" | "xl";
                           };
@@ -586,7 +727,7 @@ export default function Home() {
                             : sizeClasses.sm;
 
                           return (
-                            <p
+                            <div
                               key={index}
                               className={`w-full my-3 leading-relaxed transition-colors duration-200 ${selectedSize} ${
                                 textBlock.isBold ? "font-semibold" : "font-normal"
@@ -596,8 +737,13 @@ export default function Home() {
                                   : textBlock.isBold ? "text-neutral-900" : "text-neutral-700"
                               }`}
                             >
-                              {parseLinks(textBlock.content)}
-                            </p>
+                              <p>{parseLinks(textBlock.content)}</p>
+                              {textBlock.orderedItems && (
+                                <ol className="list-decimal pl-6 mt-6 space-y-4">
+                                  {textBlock.orderedItems.map((item) => <li key={item}>{item}</li>)}
+                                </ol>
+                              )}
+                            </div>
                           );
                         }
 
@@ -870,7 +1016,7 @@ export default function Home() {
                                 {/* Table Body */}
                                 <tbody className={`divide-y ${isDark ? "divide-neutral-800" : "divide-neutral-200"}`}>
                                   {rows.map((row: any, rIdx: number) => {
-                                    const isLastRow = rIdx === rows.length - 1;
+                                    const isLastRow = block.emphasizeLastRow !== false && rIdx === rows.length - 1;
                                     return (
                                       <tr
                                         key={rIdx}
@@ -902,17 +1048,17 @@ export default function Home() {
                                   isDark ? "bg-neutral-800" : "bg-neutral-100"
                                 }`}
                               >
-                                <video
+                                <ProjectVideo
+                                  key={block.src}
+                                  src={block.src}
+                                  loopDelayMs={block.loopDelayMs}
                                   controls={showControls}
                                   autoPlay={isAutoplay}
                                   muted={isAutoplay}
                                   playsInline={isAutoplay}
                                   loop={isLoop}
                                   className="w-full h-auto"
-                                >
-                                  <source src={block.src} type="video/mp4" />
-                                  Your browser does not support video playback.
-                                </video>
+                                />
                               </div>
                               {block.caption && (
                                 <figcaption className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
@@ -979,64 +1125,7 @@ export default function Home() {
                         }
                         
                         if (block.type === "pipeline-steps") {
-                          return (
-                            <div key={index} className="w-full mt-1 mb-4 flex flex-col gap-4">
-                              {block.steps.map((step) => (
-                                <div
-                                  key={step.num}
-                                  className={`p-5 rounded-lg border transition-colors ${
-                                    isDark
-                                      ? "bg-neutral-900/50 border-neutral-800"
-                                      : "bg-neutral-50 border-neutral-200"
-                                  }`}
-                                >
-                                  <div className="flex items-start gap-4">
-                                    <span
-                                      className={`text-xs font-mono font-bold px-2 py-1 rounded shrink-0 ${
-                                        isDark ? "bg-neutral-800 text-neutral-400" : "bg-neutral-200 text-neutral-600"
-                                      }`}
-                                    >
-                                      {step.num}
-                                    </span>
-                                    <div className="flex-1">
-                                      <h4 className={`text-sm md:text-base font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>
-                                        {step.title}
-                                      </h4>
-                                      <p className={`mt-1 text-xs md:text-sm leading-relaxed ${isDark ? "text-neutral-400" : "text-neutral-600"}`}>
-                                        {step.desc}
-                                      </p>
-
-                                      {/* Render Sub-steps (Techniques) */}
-                                      {step.subSteps && (
-                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                                          {step.subSteps.map((sub, i) => (
-                                            <div
-                                              key={i}
-                                              className={`p-3 rounded border text-left ${
-                                                isDark
-                                                  ? "bg-neutral-950/60 border-neutral-800/80"
-                                                  : "bg-white border-neutral-200"
-                                              }`}
-                                            >
-                                              <span className="text-[10px] font-mono tracking-wider uppercase text-blue-400 font-semibold block mb-1">
-                                                {sub.tag}
-                                              </span>
-                                              <h5 className={`text-xs font-medium mb-1 ${isDark ? "text-neutral-200" : "text-neutral-800"}`}>
-                                                {sub.name}
-                                              </h5>
-                                              <p className={`text-xs leading-normal ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-                                                {sub.detail}
-                                              </p>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
+                          return <PipelineStepper key={index} steps={block.steps} isDark={isDark} />;
                         }
 
                         if (block.type === "image-grid-featured") {
@@ -1116,76 +1205,8 @@ export default function Home() {
                           );
                         }
 
-                        // "video-feature": a title + short paragraph beside a looping,
-                        // autoplaying, muted video (e.g. a screen recording of a phone flow).
-                        // Not yet part of the shared ContentBlock union — see note below.
-                        if ((block as any).type === "video-feature") {
-                          const vf = block as any as {
-                            title: string;
-                            text: string;
-                            video: string;
-                            poster?: string;
-                            reverse?: boolean; // default: video on the left, text on the right. true = swap
-                          };
-
-                          const textCol = (
-                            <div className="flex flex-col gap-3 justify-center">
-                              <h3
-                                className={`text-lg md:text-xl font-semibold ${
-                                  isDark ? "text-white" : "text-neutral-900"
-                                }`}
-                              >
-                                {vf.title}
-                              </h3>
-                              <p
-                                className={`text-sm md:text-base leading-relaxed ${
-                                  isDark ? "text-neutral-300" : "text-neutral-700"
-                                }`}
-                              >
-                                {vf.text}
-                              </p>
-                            </div>
-                          );
-
-                          const videoCol = (
-                            <div className="flex justify-center">
-                              <div
-                                className={`w-full max-w-[320px] rounded-2xl overflow-hidden ${
-                                  isDark ? "bg-neutral-800" : "bg-neutral-100"
-                                }`}
-                              >
-                                <video
-                                  autoPlay
-                                  loop
-                                  muted
-                                  playsInline
-                                  poster={vf.poster}
-                                  className="w-full h-auto block"
-                                >
-                                  <source src={vf.video} type="video/mp4" />
-                                </video>
-                              </div>
-                            </div>
-                          );
-
-                          return (
-                            <div
-                              key={index}
-                              className="w-full my-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center"
-                            >
-                              {vf.reverse ? (
-                                <>
-                                  {textCol}
-                                  {videoCol}
-                                </>
-                              ) : (
-                                <>
-                                  {videoCol}
-                                  {textCol}
-                                </>
-                              )}
-                            </div>
-                          );
+                        if (block.type === "video-feature") {
+                          return <VideoFeature key={index + block.title + (block.demos?.map(demo => demo.src).join("|") ?? block.video)} block={block} isDark={isDark} />;
                         }
 
                         return null;
@@ -1193,11 +1214,11 @@ export default function Home() {
 
                       // If this block starts a section, wrap it with a ref div so
                       // the scroll handler can measure its offsetTop.
-                      return section ? (
+                      return targets?.length ? (
                         <div
                           key={`section-wrapper-${index}`}
                           ref={(el) => {
-                            sectionRefs.current[section.id] = el;
+                            targets.forEach((target) => { sectionRefs.current[target.id] = el; });
                           }}
                         >
                           {rendered}

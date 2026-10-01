@@ -1,0 +1,13 @@
+.container { container-type: inline-size; width: 100%; margin: 12px 0; }
+.layout { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: center; gap: 40px; }
+.portrait { width: 100%; max-width: 280px; margin: 0 auto; }
+.portrait img { display: block; width: 100%; height: auto; border-radius: 6px; }
+.portrait figcaption { margin-top: 10px; font-size: 12px; line-height: 1.5; text-align: center; opacity: 0.6; }
+.content { min-width: 0; }
+.eyebrow { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; letter-spacing: 0.1em; opacity: 0.6; }
+.insights { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; }
+.card { display: flex; align-items: center; gap: 16px; padding: 22px 18px; border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: 12px; background: color-mix(in srgb, currentColor 4%, transparent); }
+.icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 9px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.icon svg { width: 24px; height: 24px; }
+.card p { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.5; }
+@container (max-width: 560px) { .layout { grid-template-columns: minmax(0, 1fr); gap: 24px; } .portrait { max-width: 220px; } }

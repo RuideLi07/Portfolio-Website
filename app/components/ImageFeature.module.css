@@ -1,0 +1,29 @@
+.container { container-type: inline-size; width: 100%; }
+.multiLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); align-items: center; gap: 32px; margin: 12px 0; }
+.multiImages { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; }
+.multiImages .image { max-height: 540px; }
+.multiImages .figure { width: 100%; }
+@container (max-width: 560px) {
+  .multiLayout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+.videoLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 32px; margin: 12px 0; }
+@container (max-width: 560px) {
+  .videoLayout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+.pairLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); align-items: start; gap: 28px; margin: 48px 0 16px; }
+.pairImages { display: grid; grid-template-columns: minmax(0, 1.66fr) minmax(0, 1fr); align-items: start; gap: 16px; width: 100%; max-width: 570px; margin-inline: auto; }
+.pairImage { display: block; width: 100%; height: auto; }
+@container (max-width: 650px) {
+  .pairLayout { grid-template-columns: minmax(0, 1fr); }
+}
+.highlightTitle { background: #ffd600; color: #171717; padding: 3px 6px; font-weight: 700; line-height: 1.7; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 40px; align-items: center; margin: 16px 0; }
+.figure { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+.imageButton { display: block; max-width: 100%; cursor: zoom-in; border: 0; padding: 0; background: transparent; }
+.imageButton:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.image { display: block; width: auto; height: auto; max-width: 100%; max-height: 480px; object-fit: contain; }
+@container (max-width: 480px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .figure { width: 180px; max-width: 100%; margin-inline: auto; }
+  .pairImages .figure { width: 100%; }
+}
