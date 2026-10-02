@@ -9,7 +9,6 @@ import ProjectVideo from "./components/ProjectVideo";
 import vendorStyles from "./components/VendorChart.module.css";
 import imageFeatureStyles from "./components/ImageFeature.module.css";
 import AnnotatedLimitations from "./components/AnnotatedLimitations";
-import CompetitorTable from "./components/CompetitorTable";
 import PipelineStepper from "./components/PipelineStepper";
 import InterviewInsights from "./components/InterviewInsights";
 import VideoFeature from "./components/VideoFeature";
@@ -26,6 +25,16 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
 
   // Ref to programmatically scroll main content back to top
   const mainRef = useRef<HTMLElement | null>(null);
+  const pendingSection = useRef<string | null>(null);
+  const scrollSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishSectionScroll = () => {
+    pendingSection.current = null;
+    if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+  };
+  useEffect(() => () => {
+    if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+  }, []);
+  const prototypeRef = useRef<HTMLDivElement | null>(null);
 
   // Section timeline tracking
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -84,6 +93,12 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
       setIsScrolled(false);
     }
 
+    if (pendingSection.current) {
+      // Keep the clicked destination selected while passing intermediate sections.
+      if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+      scrollSettleTimer.current = setTimeout(finishSectionScroll, 180);
+      return;
+    }
     if (!sections || sections.length === 0) return;
 
     // The "activation line" is how far from the top of the scroll container
@@ -93,7 +108,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
 
     for (const section of navigationTargets ?? []) {
       const el = sectionRefs.current[section.id];
-      if (el && el.getBoundingClientRect().top - e.currentTarget.getBoundingClientRect().top <= activationLine) {
+      if (el && el.getBoundingClientRect().top - e.currentTarget.getBoundingClientRect().top <= activationLine + 8) {
         current = section.id;
       }
     }
@@ -138,16 +153,35 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
     setIsScrolled(false);
   };
 
-  // Jump the middle column's scroll position to a given section, offset by
-  // the same activation line used in handleScroll so the highlight stays in sync.
+  // Align major sections with their divider; keep subsection headings below the header.
   const scrollToSection = (sectionId: string) => {
     const container = mainRef.current;
     const target = sectionRefs.current[sectionId];
     if (!container || !target) return;
 
-    const activationLine = 160;
-    const top = target.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - activationLine;
+    const divider = target.querySelector<HTMLElement>("[data-section-divider]");
+    const anchor = divider ?? target;
+    const offset = divider ? 0 : 152;
+    const top = anchor.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - offset;
 
+    finishSectionScroll();
+    pendingSection.current = sectionId;
+    scrollSettleTimer.current = setTimeout(finishSectionScroll, 1200);
+    container.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    setActiveSectionId(sectionId);
+  };
+
+  const scrollToPrototype = (sectionId: string) => {
+    const container = mainRef.current;
+    const target = prototypeRef.current;
+    if (!container || !target) {
+      scrollToSection(sectionId);
+      return;
+    }
+    const top = target.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+    finishSectionScroll();
+    pendingSection.current = sectionId;
+    scrollSettleTimer.current = setTimeout(finishSectionScroll, 1200);
     container.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
     setActiveSectionId(sectionId);
   };
@@ -232,20 +266,18 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
               >
                 Design
               </button>
-              <button
-                onClick={() => handleTabChange("research")}
-                className={`transition-colors ${
-                  activeTab === "research"
-                    ? isDark
-                      ? "text-white font-semibold"
-                      : "text-black font-semibold"
-                    : isDark
-                    ? "text-neutral-400 hover:text-neutral-100"
-                    : "text-neutral-400 hover:text-black"
-                }`}
-              >
-                Research
-              </button>
+              {process.env.NODE_ENV === "development" && (
+                <button
+                  onClick={() => handleTabChange("research")}
+                  className={`transition-colors ${
+                    activeTab === "research"
+                      ? isDark ? "text-white font-semibold" : "text-black font-semibold"
+                      : isDark ? "text-neutral-400 hover:text-neutral-100" : "text-neutral-400 hover:text-black"
+                  }`}
+                >
+                  Research
+                </button>
+              )}
               <button
                 onClick={() => handleTabChange("info")}
                 className={`transition-colors ${
@@ -312,8 +344,8 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
               My work focuses on translating complex socio-technical systems into intuitive digital products and interventions.
             </p>
             <div className="pt-2 flex gap-6 text-sm font-semibold">
-              <a href="mailto:email@example.com" className="underline hover:opacity-50">Email</a>
-              <a href="#resume" className="underline hover:opacity-50">Resume</a>
+              <a href="mailto:richlrd@umich.edu" className="underline hover:opacity-50">Email</a>
+              <a href="/images/Richard%20Design%20Resume.pdf" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-50">Resume</a>
             </div>
           </main>
         )}
@@ -548,8 +580,8 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
 
               {/* Footer Links */}
               <div className={`pt-4 flex flex-col gap-1 text-xs ${isDark ? "text-neutral-400" : "text-neutral-600"}`}>
-                <a href="#resume" className={isDark ? "hover:text-white" : "hover:text-black"}>Resume</a>
-                <a href="mailto:email@example.com" className={isDark ? "hover:text-white" : "hover:text-black"}>Email</a>
+                <a href="/images/Richard%20Design%20Resume.pdf" target="_blank" rel="noopener noreferrer" className={isDark ? "hover:text-white" : "hover:text-black"}>Resume</a>
+                <a href="mailto:richlrd@umich.edu" className={isDark ? "hover:text-white" : "hover:text-black"}>Email</a>
               </div>
             </aside>
 
@@ -557,6 +589,12 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
             <main
               ref={mainRef}
               onScroll={handleScroll}
+              onScrollEnd={finishSectionScroll}
+              onWheel={finishSectionScroll}
+              onTouchStart={finishSectionScroll}
+              onKeyDown={(event) => {
+                if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) finishSectionScroll();
+              }}
               className="px-6 md:px-8 pt-0 pb-8 overflow-y-auto h-full no-scrollbar"
             >
               {activeProject && (
@@ -567,8 +605,13 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                       // Does a section start at this block index? If so, wrap the
                       // rendered output in a ref div so scroll tracking can find it.
                       const targets = navigationTargets?.filter((target) => target.blockIndex === index);
+                      const majorSectionIndex = sections?.findIndex((section) => section.blockIndex === index) ?? -1;
+                      const majorSection = activeProject.sectionTitles && majorSectionIndex >= 0
+                        ? sections?.[majorSectionIndex]
+                        : undefined;
 
                       const rendered = (() => {
+                        if (majorSection && block.type === "heading" && block.content === majorSection.title) return null;
                         if (block.type === "interview-insights") {
                           return <InterviewInsights key={index} block={block} />;
                         }
@@ -589,9 +632,6 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                               </div>
                             </div>
                           );
-                        }
-                        if (block.type === "competitor-table") {
-                          return <CompetitorTable key={index} block={block} isDark={isDark} />;
                         }
                         if (block.type === "image-feature-pair") {
                           return (
@@ -635,7 +675,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                                   {block.showPrototypeButton && prototypeSection && (
                                     <button
                                       type="button"
-                                      onClick={() => scrollToSection(prototypeSection.id)}
+                                      onClick={() => scrollToPrototype(prototypeSection.id)}
                                       className={`mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 ${isDark ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-700"}`}
                                     >
                                       View Live Prototype <span aria-hidden="true">↓</span>
@@ -681,7 +721,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                           );
                         }
                         if (block.type === "delivery-comparison") {
-                          return <DeliveryComparison key={index} images={block.images} />;
+                          return <DeliveryComparison key={index} images={block.images} paragraphs={block.paragraphs} isDark={isDark} />;
                         }
                         if (block.type === "text") {
                           const textBlock = block as {
@@ -866,11 +906,12 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                             const selectedRow = rows[selectedIdx];
 
                             return (
-                              <div key={index} className="w-full my-6">
+                              <div key={index} className="w-full my-6 overflow-x-auto">
                                 {/* Horizontal category icon tabs */}
                                 <div className="flex items-start justify-center gap-8 md:gap-12 pb-8 flex-wrap">
                                   {rows.map((row, rIdx) => {
                                     const isSelected = rIdx === selectedIdx;
+                                    const category = row.category ?? row.platform;
                                     return (
                                       <button
                                         key={rIdx}
@@ -883,16 +924,16 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                                         }
                                         className="flex flex-col items-center gap-2 focus:outline-none group/tab"
                                       >
-                                        {row.category?.icon && (
+                                        {category?.icon && (
                                           <img
-                                            src={!isDark && row.category.iconLight ? row.category.iconLight : row.category.icon}
-                                            alt={`${row.category.name} icon`}
+                                            src={!isDark && category.iconLight ? category.iconLight : category.icon}
+                                            alt={`${category.name} icon`}
                                             className={`h-8 w-8 object-contain transition-opacity duration-300 ${
                                               isSelected ? "opacity-100" : "opacity-40 group-hover/tab:opacity-70"
                                             }`}
                                           />
                                         )}
-                                        {row.category?.name && (
+                                        {category?.name && (
                                           <span
                                             className={`text-xs whitespace-nowrap transition-colors duration-300 ${
                                               isSelected
@@ -904,7 +945,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                                                 : "text-neutral-400 group-hover/tab:text-neutral-600"
                                             }`}
                                           >
-                                            {row.category.name}
+                                            {category.name}
                                           </span>
                                         )}
                                         <span
@@ -957,15 +998,19 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                                               isDark ? "text-neutral-300" : "text-neutral-700"
                                             }`}
                                           >
-                                            {item.practice}
+                                            {item.practice ?? item.model}
                                           </td>
                                           <td
                                             className={`py-4 px-4 text-xs md:text-sm leading-relaxed ${
                                               isDark ? "text-neutral-300" : "text-neutral-700"
                                             }`}
                                           >
-                                            {item.impact}
+                                            {item.impact ?? item.behavior}
                                           </td>
+
+                                          {selectedRow.platform && (
+                                            <td className={`py-4 px-4 text-xs md:text-sm leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{item.feature}</td>
+                                          )}
 
                                           {/* Agency cell only on the first item row, spanning the rest */}
                                           {itemIdx === 0 && selectedRow.agencies && selectedRow.agencies.length > 0 && (
@@ -1082,6 +1127,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                         }
 
                         if (block.type === "divider") {
+                          if (activeProject.sectionTitles) return null;
                           return (
                             <hr
                               key={index}
@@ -1108,7 +1154,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                           }
 
                           return (
-                            <div key={index} className="w-full mt-2 mb-8 flex flex-col items-center gap-3">
+                            <div key={index} ref={prototypeRef} className="w-full mt-2 mb-8 flex flex-col items-center gap-3">
                               <div
                                 className={`w-full max-w-lg mx-auto overflow-hidden rounded-xl transition-colors duration-300 flex items-center justify-center ${
                                   isDark ? "bg-black" : "bg-neutral-900"
@@ -1233,6 +1279,16 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                             targets.forEach((target) => { sectionRefs.current[target.id] = el; });
                           }}
                         >
+                          {majorSection && (
+                            <header data-section-divider className={`flex items-baseline gap-4 md:gap-5 border-t pt-8 ${isDark ? "border-neutral-700" : "border-neutral-300"} ${majorSectionIndex > 0 ? "mt-12 md:mt-16" : "mt-2"} mb-8`}>
+                              <span className={`font-mono text-sm md:text-base tabular-nums ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+                                {String(majorSectionIndex + 1).padStart(2, "0")}
+                              </span>
+                              <h2 className={`text-2xl md:text-3xl font-semibold tracking-tight ${isDark ? "text-white" : "text-neutral-900"}`}>
+                                {majorSection.title}
+                              </h2>
+                            </header>
+                          )}
                           {rendered}
                         </div>
                       ) : (

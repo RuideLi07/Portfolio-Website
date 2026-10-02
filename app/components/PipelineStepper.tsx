@@ -6,16 +6,15 @@ import styles from "./PipelineStepper.module.css";
 
 export default function PipelineStepper({ steps, isDark }: { steps: PipelineStep[]; isDark: boolean }) {
   const [active, setActive] = useState(0);
-  const [playing, setPlaying] = useState(true);
   const [restart, setRestart] = useState(0);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const id = useId();
 
   useEffect(() => {
-    if (!playing || steps.length < 2) return;
+    if (steps.length < 2) return;
     const timer = setTimeout(() => setActive((current) => (current + 1) % steps.length), 6000);
     return () => clearTimeout(timer);
-  }, [active, playing, restart, steps.length]);
+  }, [active, restart, steps.length]);
 
   function select(index: number) {
     setActive(index);
@@ -28,7 +27,6 @@ export default function PipelineStepper({ steps, isDark }: { steps: PipelineStep
     <section className={styles.container} data-theme={isDark ? "dark" : "light"} aria-label="Delivery routing pipeline">
       <div className={styles.header}>
         <span>HOW IT WORKS <span className={styles.counter}>{active + 1} / {steps.length}</span></span>
-        <button type="button" onClick={() => setPlaying((value) => !value)} aria-label={playing ? "Pause automatic steps" : "Resume automatic steps"}>{playing ? "Ⅱ Pause" : "▷ Play"}</button>
       </div>
       <div className={styles.tabs} role="tablist" aria-label="Pipeline steps">
         {steps.map((step, index) => (

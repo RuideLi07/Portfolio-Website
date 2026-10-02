@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-export default function DeliveryComparison({ images }: {
+export default function DeliveryComparison({ images, paragraphs, isDark }: {
   images: Array<{ src: string; alt: string; caption: string }>;
+  paragraphs?: string[];
+  isDark: boolean;
 }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -24,7 +26,13 @@ export default function DeliveryComparison({ images }: {
   }, [active, paused, ready, images]);
 
   return (
-    <figure className="w-full max-w-[720px] mx-auto my-6">
+    <div className={`w-full my-6 ${paragraphs?.length ? "grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center" : ""}`}>
+      {paragraphs && (
+        <div className={`space-y-6 text-sm md:text-base leading-relaxed ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+          {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+      )}
+    <figure className="w-full max-w-[440px] mx-auto">
       <div className="relative aspect-[500/455] overflow-hidden rounded-xl">
         {images.map((image, index) => (
           // These matching source images must stay aligned during the crossfade.
@@ -42,27 +50,20 @@ export default function DeliveryComparison({ images }: {
           />
         ))}
       </div>
-      <figcaption className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-4 text-xs md:text-sm">
+      <figcaption className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-4 text-xs">
         {images.map((image, index) => (
           <button
             key={image.src}
             type="button"
             aria-pressed={active === index}
-            onClick={() => { setActive(index); setPaused(true); }}
+            onClick={() => setActive(index)}
             className={`border-b-2 py-2 transition-opacity ${active === index ? "border-current font-semibold" : "border-transparent opacity-60 hover:opacity-100"}`}
           >
             {image.caption}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={() => setPaused((previous) => !previous)}
-          aria-label={paused ? "Play delivery comparison" : "Pause delivery comparison"}
-          className="py-2 opacity-60 hover:opacity-100"
-        >
-          {paused ? "Play" : "Pause"}
-        </button>
       </figcaption>
     </figure>
+    </div>
   );
 }

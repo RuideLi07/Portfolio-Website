@@ -25,7 +25,7 @@ export const DESIGN_PROJECTS: Project[] = [
       },
       {
         type: "image-feature",
-        text: "Newtrality is an app built to encourage farmers market vendors to adopt sustainable production and transportation practices in their daily operations. It turns green choices into redeemable credits that vendors can trade in for practical perks like discounted stall fees or business support.",
+        text: "Newtrality is an app built to encourage farmers market vendors to adopt sustainable production and transportation practices in their daily operations. It turns green choices into redeemable credits that vendors can trade in for practical perks like discounted stall fees or business support. Using Detroit’s Eastern Market as a case study, it explores how the system could work in a real market setting.",
         showPrototypeButton: true,
         images: [
           { src: "/images/newtrality/LandingPage1.png", alt: "Newtrality welcome screen" },
@@ -65,22 +65,6 @@ export const DESIGN_PROJECTS: Project[] = [
         ],
       },
       {
-        type: "image-row",
-        showCaptionInline: true,
-        images: [
-          {
-            src: "/images/newtrality/Vendor1.jpeg",
-            alt: "Eastern Market Vendor 1",
-            caption: "Eric, 3rd Generation Farmer, 57 years at Eastern Market",
-          },
-          {
-            src: "/images/newtrality/Vendor2.jpeg",
-            alt: "Eastern Market Vendor 2",
-            caption: "Charity, Clothing Designer, 4 years at Eastern Market",
-          },
-        ],
-      },
-      {
       type: "divider",
       },
       {
@@ -90,13 +74,13 @@ export const DESIGN_PROJECTS: Project[] = [
       },
       {
         type: "text",
-        content: "To support different vendors in adopting relevant sustainable practice. Newtrality outlines a category-specific framework that list out practical, high-impact sustainable operations to their concrete environmental benefits and certifying agencies.",
+        content: "To encourage vendors to take action, Newtrality organizes practical sustainability production practices by vendor type and shows the environmental impact and its respective certifying agencies.",
         size: "base" 
       },
       {
         type: "table",
         headers: ["Category", "Practices", "Impact", "Agency"],
-        autoCycleMs: 6000,
+        autoCycleMs: 15000,
         rows: [
           {
             category: { name: "Dining", icon: "/images/newtrality/DiningIconDark.png", iconLight: "/images/newtrality/DiningIconLight.png"},
@@ -212,17 +196,8 @@ export const DESIGN_PROJECTS: Project[] = [
       { type: "divider" },
       { type: "heading", content: "Shared Delivery Research", sidebarTitle: "Research" },
       {
-        type: "text",
-        content: "As shown in the illustration, this is a current real-world scenario of a selected group of 20 vendors here at Eastern Market. The thickness of line represents the density of travel. The thicker the line is, the more deliveries pass the same route. As we can see, the density of delivery is quite high along some highways and arterial roads.",
-        size: "base" 
-      },
-      {
-        type: "text",
-        content: "With the clustered centralized delivery method, the density of travel significantly decreases alongside major routes, which is calculated to actually save vehicular miles traveled and thus carbon footprint when certain amounts of trucks is used for a clustered delivery.",
-        size: "base" 
-      },
-      {
         type: "delivery-comparison",
+        paragraphs: ["As shown in the illustration, this is a current real-world scenario of a selected group of 20 vendors here at Eastern Market. The thickness of line represents the density of travel. The thicker the line is, the more deliveries pass the same route. As we can see, the density of delivery is quite high along some highways and arterial roads.","With the clustered centralized delivery method, the density of travel significantly decreases alongside major routes, which is calculated to actually save vehicular miles traveled and thus carbon footprint when certain amounts of trucks is used for a clustered delivery."],
         images: [
           {
             src: "/images/newtrality/Transportation1.png",
@@ -337,11 +312,6 @@ export const DESIGN_PROJECTS: Project[] = [
       type: "divider",
       },
       {
-        type: "text",
-        content: "Interact with the final prototype here",
-        size: "xl",
-      },
-      {
         type: "figma",
         url: "https://www.figma.com/proto/lFwIumg9lETBCJoau8iWAl/Portfolio?node-id=982-1461&t=Di0DXp0VNvvOK3AK-0&scaling=scale-down&content-scaling=fixed&page-id=588%3A374&starting-point-node-id=982%3A1461&show-proto-sidebar=1",
         height: 800, 
@@ -365,7 +335,7 @@ export const DESIGN_PROJECTS: Project[] = [
       {
         type: "image-feature",
         text:
-          "GrassHop connects local neighborhood organizers and residents through real-time event mapping and micro-sponsorship logistics.",
+          "GrassHop is an app tailored for grassroots community event organizers, designed to help more people discover, explore, and participate in local events.",
         showPrototypeButton: true,
         images: [
           { src: "/images/grasshop/Landing1.png", alt: "GrassHop landing screen 1" },
@@ -386,24 +356,71 @@ export const DESIGN_PROJECTS: Project[] = [
       { type: "divider" },
       { type: "heading", content: "Existing Event Discovery Platforms", sidebarTitle: "Competitors" },
       {
-        type: "competitor-table",
-        headers: ["Primary Discovery Model", "Primary User Behavior", "Key Features"],
-        logos: {
-          Eventbrite: "/images/grasshop/AppLogo/EventBrite.png",
-          Meetup: "/images/grasshop/AppLogo/Meetup.png",
-          Luma: "/images/grasshop/AppLogo/Luma.png",
-          Partiful: "/images/grasshop/AppLogo/Partiful.png",
-          Facebook: "/images/grasshop/AppLogo/Facebook.png",
-          Instagram: "/images/grasshop/AppLogo/Instagram.png",
-        },
+        type: "table",
+        headers: ["Platform", "Primary Discovery Model", "Primary User Behavior", "Key Features"],
+        autoCycleMs: 15000,
         rows: [
-          ["Eventbrite","Search-led event marketplace. People browse by destination, date, and category, narrowing a broad catalog to events that match a planned outing.","Search for an activity, compare listings, review timing and ticket options, then register. Following organizers and saving events supports return visits and future planning.","Structured event pages, ticket purchasing, saved events, and organizer following connect discovery with booking. Its strength is helping users evaluate an event and commit to attending."],
-          ["Meetup","Interest-led community discovery. Events are connected to groups built around shared hobbies, activities, or identities, making the community a central entry point.","Find a relevant group or event, RSVP, and get to know people through repeated participation. The journey encourages an ongoing relationship with a community beyond a single gathering.","Group profiles, event listings, RSVPs, and location-based recommendations support recurring participation. A strong reference for building community continuity around shared interests."],
-          ["Luma","Calendar-led discovery with city and category browsing. Following curated calendars creates a stream of upcoming events from communities and hosts that users choose.","Explore events, follow relevant calendars, and register for gatherings. Calendar subscriptions and personal calendar syncing help people keep track of future plans.","Public event calendars, registration pages, personalized discovery, and calendar syncing connect event promotion with planning. Its strength is maintaining a relationship between hosts and their audiences."],
-          ["Partiful","Invitation-led social discovery. Shared event links and friends’ attendance create entry points, while Explore also surfaces local events and new communities.","Open an invitation, review the gathering, RSVP, and coordinate with the host. Seeing friends’ plans can help people decide which events they want to join.","Customizable invitations, RSVP tracking, guest questionnaires, and text updates simplify informal hosting. Social context and lightweight coordination are useful references for neighborhood gatherings."],
-          ["Facebook","Social-network and group-led discovery. Events circulate through community groups, pages, and personal connections, alongside recommendations for nearby activities.","Encounter an event through a group or shared post, review the details, and discuss plans with others. Existing community relationships can give a gathering context before someone attends.","Group events and public or private event visibility support different community needs. Its strength is distributing event information through established networks; discovery is part of a broader social experience."],
-          ["Instagram","Visual and social discovery. Organizers introduce events through posts, Reels, and Stories; reposts and location-tagged content create additional paths to local activities.","Notice an event while browsing, share it with friends, and look for details from the organizer. This journey often begins with the appeal of the content rather than an explicit event search.","Visual promotion, reposts, messaging, and location-tagged content help events spread socially. Instagram Map also supports place-based content discovery, offering a useful reference for connecting local activity with location."],
-        ],
+          {
+            platform: { name: "EventBrite", icon: "/images/grasshop/AppLogo/EventBrite.png"},
+            items: [
+              {
+                model: "Search-led event marketplace. People browse by destination, date, and category, narrowing a broad catalog to events that match a planned outing.",
+                behavior: "Search for an activity, compare listings, review timing and ticket options, then register. Following organizers and saving events supports return visits and future planning.",
+                feature: "Structured event pages, ticket purchasing, saved events, and organizer following connect discovery with booking. Its strength is helping users evaluate an event and commit to attending."
+              },
+            ],
+          },
+          {
+            platform: { name: "Meetup", icon: "/images/grasshop/AppLogo/Meetup.png"},
+            items: [
+              {
+                model: "Interest-led community discovery. Events are connected to groups built around shared hobbies, activities, or identities, making the community a central entry point.",
+                behavior: "Find a relevant group or event, RSVP, and get to know people through repeated participation. The journey encourages an ongoing relationship with a community beyond a single gathering.",
+                feature: "Group profiles, event listings, RSVPs, and location-based recommendations support recurring participation. A strong reference for building community continuity around shared interests."
+              },
+            ],
+          },
+          {
+            platform: { name: "Luma", icon: "/images/grasshop/AppLogo/Luma.png"},
+            items: [
+              {
+                model: "Calendar-led discovery with city and category browsing. Following curated calendars creates a stream of upcoming events from communities and hosts that users choose.",
+                behavior: "Explore events, follow relevant calendars, and register for gatherings. Calendar subscriptions and personal calendar syncing help people keep track of future plans.",
+                feature: "Public event calendars, registration pages, personalized discovery, and calendar syncing connect event promotion with planning. Its strength is maintaining a relationship between hosts and their audiences."
+              },
+            ],
+          },
+          {
+            platform: { name: "Partiful", icon: "/images/grasshop/AppLogo/Partiful.png"},
+            items: [
+              {
+                model: "Invitation-led social discovery. Shared event links and friends’ attendance create entry points, while Explore also surfaces local events and new communities.",
+                behavior: "Open an invitation, review the gathering, RSVP, and coordinate with the host. Seeing friends’ plans can help people decide which events they want to join.",
+                feature: "Customizable invitations, RSVP tracking, guest questionnaires, and text updates simplify informal hosting. Social context and lightweight coordination are useful references for neighborhood gatherings."
+              },
+            ],
+          },
+          {
+            platform: { name: "Facebook", icon: "/images/grasshop/AppLogo/Facebook.png"},
+            items: [
+              {
+                model: "Social-network and group-led discovery. Events circulate through community groups, pages, and personal connections, alongside recommendations for nearby activities.",
+                behavior: "Encounter an event through a group or shared post, review the details, and discuss plans with others. Existing community relationships can give a gathering context before someone attends.",
+                feature: "Group events and public or private event visibility support different community needs. Its strength is distributing event information through established networks; discovery is part of a broader social experience."
+              },
+            ],
+          },
+          {
+            platform: { name: "Instagram", icon: "/images/grasshop/AppLogo/Instagram.png"},
+            items: [
+              {
+                model: "Social-network and group-led discovery. Events circulate through community groups, pages, and personal connections, alongside recommendations for nearby activities.",
+                behavior: "Encounter an event through a group or shared post, review the details, and discuss plans with others. Existing community relationships can give a gathering context before someone attends.",
+                feature: "Group events and public or private event visibility support different community needs. Its strength is distributing event information through established networks; discovery is part of a broader social experience."
+              },
+            ],
+          }
+        ]
       },
       { type: "heading", content: "Limitations of current Event Discovery Platform", sidebarTitle: "Limitations" },
       {
@@ -428,7 +445,6 @@ export const DESIGN_PROJECTS: Project[] = [
       { type: "divider" },
       { type: "heading", content: "User Research"},
       { type: "divider" },
-      { type: "heading", content: "Key Features of GrassHop"},
       {
         type: "video-feature",
         title: "Dynamic Locality Filtering",
@@ -454,7 +470,11 @@ export const DESIGN_PROJECTS: Project[] = [
         ],
       },
       { type: "divider" },
-      { type: "heading", content: "Interact with the final prototype here"}
+      {
+        type: "figma",
+        url: "https://www.figma.com/proto/lFwIumg9lETBCJoau8iWAl/Portfolio?node-id=757-1068&t=0CgSJKkfk0OAulCS-0&scaling=scale-down&content-scaling=fixed&page-id=588%3A374&starting-point-node-id=757%3A1068&show-proto-sidebar=1",
+        height: 800,
+      },
     ],
   },
 ];

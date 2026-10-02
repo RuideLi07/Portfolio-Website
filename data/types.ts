@@ -13,6 +13,11 @@ export type TableRow = {
   agencies?: string[];
 };
 
+export type PlatformTableRow = {
+  platform: { name: string; icon?: string; iconLight?: string };
+  items: Array<{ model: string; behavior: string; feature: string }>;
+};
+
 export type PipelineStep = {
   num: string;
   title: string;
@@ -26,10 +31,9 @@ export type PipelineStep = {
 };
 
 export type ContentBlock =
-  | { type: "delivery-comparison"; images: Array<{ src: string; alt: string; caption: string }> }
+  | { type: "delivery-comparison"; paragraphs?: string[]; images: Array<{ src: string; alt: string; caption: string }> }
   | { type: "interview-insights"; src: string; alt: string; caption: string; insights: string[] }
   | { type: "video-text"; src: string; text: string; loopDelayMs?: number }
-  | { type: "competitor-table"; headers: string[]; rows: [string, string, string, string][]; logos: Record<string, string> }
   | { type: "image-feature-pair"; title: string; text: string; images: Array<{ src: string; alt: string; caption: string }> }
   | { type: "annotated-limitations" }
   | { type: "heading"; content: string; sidebarTitle?: string }
@@ -47,7 +51,7 @@ export type ContentBlock =
       featuredImage: { src: string; srcLight?: string; alt?: string };
       caption?: string;
     }
-  | { type: "table"; headers: string[]; rows: TableRow[] | string[][]; emphasizeLastRow?: boolean; autoCycleMs?: number }
+  | { type: "table"; headers: string[]; rows: TableRow[] | PlatformTableRow[] | string[][]; emphasizeLastRow?: boolean; autoCycleMs?: number }
   | { type: "pipeline-steps"; steps: PipelineStep[] }
   | {
       type: "video";
