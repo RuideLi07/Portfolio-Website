@@ -17,7 +17,10 @@ const availableAngle = 360 - gap * vendors.length;
 
 function point(angle: number) {
   const radians = (angle * Math.PI) / 180;
-  return `${160 + radius * Math.cos(radians)} ${160 + radius * Math.sin(radians)}`;
+  // Normalize tiny floating-point differences between server and browser engines.
+  const x = (160 + radius * Math.cos(radians)).toFixed(4);
+  const y = (160 + radius * Math.sin(radians)).toFixed(4);
+  return `${x} ${y}`;
 }
 
 const segments = vendors.map((vendor, index) => {

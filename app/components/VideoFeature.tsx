@@ -17,7 +17,7 @@ export default function VideoFeature({ block: vf, isDark }: { block: Extract<Con
         {vf.title}
       </h3>
       <p
-        className={`text-sm md:text-base leading-relaxed ${
+        className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${
           isDark ? "text-neutral-300" : "text-neutral-700"
         }`}
       >
