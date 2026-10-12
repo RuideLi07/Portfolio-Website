@@ -13,12 +13,15 @@ import PipelineStepper from "./components/PipelineStepper";
 import InterviewInsights from "./components/InterviewInsights";
 import VideoFeature from "./components/VideoFeature";
 import DeliveryComparison from "./components/DeliveryComparison";
+import ContactDialog from "./components/ContactDialog";
 
 export default function Portfolio({ activeTab = "landing", projectId = null }: { activeTab?: "landing" | "design" | "research" | "info"; projectId?: string | null }) {
   const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(projectId);
   const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const [contactOpen, setContactOpen] = useState(false);
 
   // Lightbox modal state
   const [expandedImage, setExpandedImage] = useState<{ src: string; alt?: string; caption?: string } | null>(null);
@@ -174,7 +177,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
   const scrollToPrototype = (sectionId: string) => {
     const container = mainRef.current;
     const target = prototypeRef.current;
-    if (!container || !target) {
+    if (!container || !target) { 
       scrollToSection(sectionId);
       return;
     }
@@ -344,7 +347,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
               My work focuses on translating complex socio-technical systems into intuitive digital products and interventions.
             </p>
             <div className="pt-2 flex gap-6 text-sm font-semibold">
-              <a href="mailto:richlrd@umich.edu" className="underline hover:opacity-50">Email</a>
+              <button type="button" onClick={() => setContactOpen(true)} className="text-left underline hover:opacity-50">Email</button>
               <a href="/images/Richard%20Design%20Resume.pdf" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-50">Resume</a>
             </div>
           </main>
@@ -403,14 +406,14 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                     )}
 
                     {project.tags && project.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
+                      <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
                         {project.tags.map((tag, idx) => (
                           <span
                             key={idx}
-                            className={`text-[11px] px-2.5 py-0.5 rounded-full border backdrop-blur-sm transition-colors ${
+                            className={`text-[11px] underline underline-offset-4 decoration-1 transition-colors ${
                               isDark
-                                ? "border-white/30 text-neutral-100 bg-black/20"
-                                : "border-neutral-400 text-neutral-800 bg-white/40"
+                                ? "text-neutral-100 decoration-white/40"
+                                : "text-neutral-800 decoration-neutral-400"
                             }`}
                           >
                             {tag}
@@ -581,7 +584,7 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
               {/* Footer Links */}
               <div className={`pt-4 flex flex-col gap-1 text-xs ${isDark ? "text-neutral-400" : "text-neutral-600"}`}>
                 <a href="/images/Richard%20Design%20Resume.pdf" target="_blank" rel="noopener noreferrer" className={isDark ? "hover:text-white" : "hover:text-black"}>Resume</a>
-                <a href="mailto:richlrd@umich.edu" className={isDark ? "hover:text-white" : "hover:text-black"}>Email</a>
+                <button type="button" onClick={() => setContactOpen(true)} className={`text-left ${isDark ? "hover:text-white" : "hover:text-black"}`}>Email</button>
               </div>
             </aside>
 
@@ -1317,14 +1320,14 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
                   )}
 
                   {activeProject.tags && activeProject.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
                       {activeProject.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className={`text-[11px] px-2.5 py-0.5 rounded-full border transition-colors ${
+                          className={`text-[11px] underline underline-offset-4 decoration-1 transition-colors ${
                             isDark
-                              ? "border-neutral-700 text-neutral-300 bg-neutral-800/40"
-                              : "border-neutral-300 text-neutral-600 bg-neutral-100/60"
+                              ? "text-neutral-300 decoration-neutral-600"
+                              : "text-neutral-600 decoration-neutral-400"
                           }`}
                         >
                           {tag}
@@ -1338,6 +1341,8 @@ export default function Portfolio({ activeTab = "landing", projectId = null }: {
           </div>
         )}
       </div>
+
+      {contactOpen && <ContactDialog isDark={isDark} onClose={() => setContactOpen(false)} />}
 
       {/* Lightbox Modal */}
       {expandedImage && (

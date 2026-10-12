@@ -444,6 +444,23 @@ export const DESIGN_PROJECTS: Project[] = [
       },
       { type: "divider" },
       { type: "heading", content: "User Research"},
+      {
+        type: "text",
+        content: "To better understand user needs, I spoke with Mark, the organizer of a local pickup soccer game I join every Saturday. I asked how he currently organizes the game, what tools he relies on, and what feels missing when it comes to helping people discover local events, stay updated, and decide whether to join.",
+        size: "base",
+      },
+      {
+        type: "interview-insights",
+        src: "/images/grasshop/Interview.jpg",
+        iconSet: "community",
+        alt: "GrassHop user interview",
+        caption: "Saturday Pickup Soccer at Queensbridge Park",
+        insights: [
+          "Relies on email newsletters and Instagram Stories because major event platforms are built for larger, more formal events.",
+          "Grassroot events often rely on people pitching in with supplies to make them possible, but it is hard to keep track of who is bringing what, and multiple people sometimes bring the same thing.",
+          "Local events are hard to discover unless you already know the right people.",
+        ],
+      },
       { type: "divider" },
       {
         type: "video-feature",
@@ -462,7 +479,7 @@ export const DESIGN_PROJECTS: Project[] = [
       },
       {
         type: "video-feature",
-        title: "Logistic Request",
+        title: "Lend a Hand",
         reverse: true,
         demos: [
           { src: "/images/grasshop/LogisticRequestOrganizer.mp4", label: "Organizer", text: "When creating an event, organizers can add a simple list of supplies or support they need, such as water, speakers, equipment, or first-aid kits. This makes it easier to share the work of putting an grassroot event together instead of leaving everything to one person."},

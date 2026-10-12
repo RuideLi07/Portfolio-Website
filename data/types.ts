@@ -32,7 +32,7 @@ export type PipelineStep = {
 
 export type ContentBlock =
   | { type: "delivery-comparison"; paragraphs?: string[]; images: Array<{ src: string; alt: string; caption: string }> }
-  | { type: "interview-insights"; src: string; alt: string; caption: string; insights: string[] }
+  | { type: "interview-insights"; src: string; alt: string; caption: string; insights: string[]; iconSet?: "community" }
   | { type: "video-text"; src: string; text: string; loopDelayMs?: number }
   | { type: "image-feature-pair"; title: string; text: string; images: Array<{ src: string; alt: string; caption: string }> }
   | { type: "annotated-limitations" }
